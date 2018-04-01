@@ -1,0 +1,7 @@
+{
+	"parent": "transistor:item/transistor_model",
+	"overrides": [
+		{"predicate": {"mode": 0.4}, "model": "transistor:item/transistor_glow"},
+		{"predicate": {"mode": 0.9}, "model": "transistor:item/transistor_error"}
+	]
+}

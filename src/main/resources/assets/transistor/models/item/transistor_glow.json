@@ -1,0 +1,6 @@
+{
+	"parent": "transistor:item/transistor_model",
+	"textures": {
+		"core": "transistor:items/core_glow"
+	}
+}

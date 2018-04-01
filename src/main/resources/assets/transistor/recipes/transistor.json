@@ -1,0 +1,17 @@
+{
+	"type": "forge:ore_shaped",
+	"group": "transistor",
+	"result": {"item": "transistor"},
+	"pattern": [
+		" GN",
+		"ERG",
+		"IE "
+	],
+	"key": {
+		"R": {"type": "forge:ore_dict", "ore": "blockRedstone"},
+		"I": {"type": "forge:ore_dict", "ore": "ingotIron"},
+		"G": {"type": "forge:ore_dict", "ore": "ingotGold"},
+		"N": {"type": "forge:ore_dict", "ore": "netherStar"},
+		"E": {"type": "forge:ore_dict", "ore": "enderpearl"}
+	}
+}

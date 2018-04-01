@@ -1,0 +1,7 @@
+{
+	"parent": "transistor:item/transistor_model",
+	"textures": {
+		"main": "transistor:items/main_error",
+		"core": "transistor:items/core_error"
+	}
+}

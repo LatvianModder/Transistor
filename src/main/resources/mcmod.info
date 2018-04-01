@@ -1,0 +1,17 @@
+[
+	{
+		"modid": "transistor",
+		"name": "Transistor",
+		"description": "",
+		"version": "${version}",
+		"mcversion": "${mcversion}",
+		"url": "https://minecraft.curseforge.com/projects/transistor",
+		"updateUrl": "",
+		"authorList": ["LatvianModder"],
+		"credits": "",
+		"logoFile": "assets/transistor/textures/logo.png",
+		"screenshots": [],
+		"parent": "",
+		"dependencies": []
+	}
+]
