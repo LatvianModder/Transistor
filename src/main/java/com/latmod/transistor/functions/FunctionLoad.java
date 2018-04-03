@@ -19,7 +19,7 @@ public class FunctionLoad extends TransistorFunction
 	@Override
 	public boolean onAttack(TransistorData data, EntityPlayer player)
 	{
-		if (!player.world.isRemote)
+		if (!player.world.isRemote && data.useEnergy(player.world, 1000))
 		{
 			EntityEnderCrystal entity = new EntityEnderCrystal(player.world);
 			double myawr = Math.toRadians(-player.rotationYaw);

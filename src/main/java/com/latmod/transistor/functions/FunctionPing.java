@@ -22,9 +22,20 @@ public class FunctionPing extends TransistorFunction
 	}
 
 	@Override
+	public String getEffect(TransistorFunction upgrade)
+	{
+		if (upgrade == TransistorFunctions.MASK)
+		{
+			return "transistor.effect.glow";
+		}
+
+		return "";
+	}
+
+	@Override
 	public boolean onAttack(TransistorData data, EntityPlayer player)
 	{
-		if (!player.world.isRemote)
+		if (!player.world.isRemote && data.useEnergy(player.world, 100))
 		{
 			EntityArrow arrow;
 

@@ -21,6 +21,12 @@ public class FunctionJaunt extends TransistorFunction
 	}
 
 	@Override
+	public String getEffect(TransistorFunction upgrade)
+	{
+		return "";
+	}
+
+	@Override
 	public boolean onAttack(TransistorData data, EntityPlayer player)
 	{
 		if (player.world.isRemote || ((EntityPlayerMP) player).connection == null)
@@ -30,7 +36,7 @@ public class FunctionJaunt extends TransistorFunction
 
 		BlockPos pos = data.getCustomTempData("Jaunt_Pos");
 
-		if (pos != null)
+		if (pos != null && data.useEnergy(player.world, 4000))
 		{
 			double x = pos.getX() + 0.5D;
 			double y = pos.getY() + 0.5D;

@@ -14,5 +14,9 @@ public class TransistorNetHandler
 	public static void init()
 	{
 		NET.registerMessage(new MessageSelectFunction.Handler(), MessageSelectFunction.class, 0, Side.SERVER);
+		NET.registerMessage(new MessageInstallFunction.Handler(), MessageInstallFunction.class, 1, Side.SERVER);
+		NET.registerMessage(new MessageUninstallFunction.Handler(), MessageUninstallFunction.class, 2, Side.SERVER);
+		NET.registerMessage(new MessageUnlockSlot.Handler(), MessageUnlockSlot.class, 3, Side.SERVER);
+		NET.registerMessage(new MessageInstallMemory.Handler(), MessageInstallMemory.class, 4, Side.SERVER);
 	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -60,6 +61,11 @@ public class TransistorFunction
 		return color + displayName;
 	}
 
+	public String getEffect(TransistorFunction upgrade)
+	{
+		return "";
+	}
+
 	public boolean onAttack(TransistorData data, EntityPlayer player)
 	{
 		return true;
@@ -87,7 +93,7 @@ public class TransistorFunction
 	{
 	}
 
-	public boolean canHarvestBlock(IBlockState state)
+	public boolean canHarvestBlock(TransistorData data, IBlockState state)
 	{
 		return false;
 	}
@@ -95,5 +101,9 @@ public class TransistorFunction
 	public float getBlockDestroySpeed(TransistorData data, IBlockState state)
 	{
 		return 0F;
+	}
+
+	public void onBlockDestroyed(TransistorData data, IBlockState state, BlockPos pos, EntityPlayer player)
+	{
 	}
 }

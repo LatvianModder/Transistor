@@ -10,6 +10,7 @@ import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 
 import java.util.UUID;
@@ -25,6 +26,29 @@ public class FunctionCrash extends TransistorFunction
 	public FunctionCrash(int index, String n, int m, TextFormatting c)
 	{
 		super(index, n, m, c);
+	}
+
+	@Override
+	public String getEffect(TransistorFunction upgrade)
+	{
+		if (upgrade == TransistorFunctions.PURGE)
+		{
+			return "transistor.effect.poison";
+		}
+		else if (upgrade == TransistorFunctions.VOID)
+		{
+			return "transistor.effect.wither_weakness";
+		}
+		else if (upgrade == TransistorFunctions.SPARK)
+		{
+			return "transistor.effect.damage";
+		}
+		else if (upgrade == TransistorFunctions.PING)
+		{
+			return "transistor.effect.speed";
+		}
+
+		return "";
 	}
 
 	@Override
@@ -46,6 +70,8 @@ public class FunctionCrash extends TransistorFunction
 	@Override
 	public boolean hitEntity(TransistorData data, EntityPlayer player, EntityLivingBase target)
 	{
+		data.useEnergy(player.world, 100);
+
 		if (data.hasUpgrade(TransistorFunctions.PURGE))
 		{
 			target.addPotionEffect(new PotionEffect(MobEffects.POISON, 100));
@@ -63,6 +89,11 @@ public class FunctionCrash extends TransistorFunction
 	@Override
 	public void getAttributeModifiers(TransistorData data, Multimap<String, AttributeModifier> map)
 	{
+		if (!data.canUseEnergy(100))
+		{
+			return;
+		}
+
 		double damage = 7D;
 		double speed = 2.4D;
 
@@ -83,9 +114,9 @@ public class FunctionCrash extends TransistorFunction
 	}
 
 	@Override
-	public boolean canHarvestBlock(IBlockState state)
+	public boolean canHarvestBlock(TransistorData data, IBlockState state)
 	{
-		return true;
+		return data.canUseEnergy(100);
 	}
 
 	@Override
@@ -104,5 +135,11 @@ public class FunctionCrash extends TransistorFunction
 		}
 
 		return speed;
+	}
+
+	@Override
+	public void onBlockDestroyed(TransistorData data, IBlockState state, BlockPos pos, EntityPlayer player)
+	{
+		data.useEnergy(player.world, 100);
 	}
 }

@@ -54,14 +54,14 @@ public class ItemTransistor extends Item
 			public float apply(ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity)
 			{
 				TransistorData data = TransistorData.get(stack);
-				int energy = data.getEnergyStored();
+				int energy = data.getEnergy();
 
 				if (energy <= 0)
 				{
 					return 1F;
 				}
 
-				double e = energy / (double) data.getMaxEnergyStored();
+				double e = energy / (double) data.getMaxEnergy();
 
 				if (e < 0.1D)
 				{
@@ -144,7 +144,8 @@ public class ItemTransistor extends Item
 	@Override
 	public boolean canHarvestBlock(IBlockState state, ItemStack stack)
 	{
-		return TransistorData.get(stack).getSelectedAttack().canHarvestBlock(state);
+		TransistorData data = TransistorData.get(stack);
+		return data.getSelectedAttack().canHarvestBlock(data, state);
 	}
 
 	@Override
@@ -157,6 +158,12 @@ public class ItemTransistor extends Item
 	@Override
 	public boolean onBlockDestroyed(ItemStack stack, World world, IBlockState state, BlockPos pos, EntityLivingBase entity)
 	{
+		if (entity instanceof EntityPlayer)
+		{
+			TransistorData data = TransistorData.get(stack);
+			data.getSelectedAttack().onBlockDestroyed(data, state, pos, (EntityPlayer) entity);
+		}
+
 		return true;
 	}
 
@@ -182,21 +189,22 @@ public class ItemTransistor extends Item
 		if (isInCreativeTab(tab))
 		{
 			TransistorData data = TransistorData.get(new ItemStack(this));
-			data.unlock(TransistorFunctions.CRASH);
+			data.setMemory((byte) 16);
+			data.unlockFunction(TransistorFunctions.CRASH);
 			data.setAttack(0, TransistorFunctions.CRASH);
-			data.setEnergyStored(data.getMaxEnergyStored());
+			data.setEnergy(data.getMaxEnergy());
 			items.add(data.stack);
 
 			data = TransistorData.get(new ItemStack(this));
-			data.setUnlocked(0xFFFFFFFF);
 			data.setMemory((byte) 32);
+			data.setUnlocked(0xFFFFFFFF);
 			data.setAttack(0, TransistorFunctions.CRASH);
 			data.setAttack(1, TransistorFunctions.BREACH);
 			data.setAttack(2, TransistorFunctions.PING);
 			data.setAttack(3, TransistorFunctions.JAUNT);
 			data.setPassive(0, TransistorFunctions.HELP);
 			data.setPassive(1, TransistorFunctions.CULL);
-			data.setEnergyStored(data.getMaxEnergyStored());
+			data.setEnergy(data.getMaxEnergy());
 			items.add(data.stack);
 		}
 	}
@@ -234,7 +242,7 @@ public class ItemTransistor extends Item
 			tooltip.add("");
 		}
 
-		tooltip.add(I18n.format("transistor.energy") + ": " + TextFormatting.AQUA + data.getEnergyStored() + TextFormatting.GRAY + " / " + TextFormatting.AQUA + data.getMaxEnergyStored());
+		tooltip.add(I18n.format("transistor.energy") + ": " + TextFormatting.AQUA + data.getEnergy() + TextFormatting.GRAY + " / " + TextFormatting.AQUA + data.getMaxEnergy());
 		tooltip.add(I18n.format("transistor.memory") + ": " + TextFormatting.GOLD + data.getUsedMemory() + TextFormatting.GRAY + " / " + TextFormatting.GOLD + data.getMemory());
 		tooltip.add(I18n.format("transistor.xp") + ": " + TextFormatting.GREEN + data.getXP());
 
@@ -245,7 +253,7 @@ public class ItemTransistor extends Item
 
 			for (TransistorFunction function : TransistorFunctions.getAll())
 			{
-				if (data.isUnlocked(function))
+				if (data.isFunctionUnlocked(function))
 				{
 					tooltip.add("  " + function.getDisplayName());
 				}
@@ -271,13 +279,13 @@ public class ItemTransistor extends Item
 	public boolean showDurabilityBar(ItemStack stack)
 	{
 		TransistorData data = TransistorData.get(stack);
-		return data.getEnergyStored() > 0 && data.getEnergyStored() < data.getMaxEnergyStored();
+		return data.getEnergy() > 0 && data.getEnergy() < data.getMaxEnergy();
 	}
 
 	@Override
 	public double getDurabilityForDisplay(ItemStack stack)
 	{
 		TransistorData data = TransistorData.get(stack);
-		return 1D - MathHelper.clamp(data.getEnergyStored() / (double) data.getMaxEnergyStored(), 0D, 1D);
+		return 1D - MathHelper.clamp(data.getEnergy() / (double) data.getMaxEnergy(), 0D, 1D);
 	}
 }

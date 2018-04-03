@@ -2,7 +2,6 @@ package com.latmod.transistor.client;
 
 import com.latmod.transistor.TransistorData;
 import com.latmod.transistor.TransistorFunction;
-import com.latmod.transistor.TransistorItems;
 import com.latmod.transistor.net.MessageSelectFunction;
 import com.latmod.transistor.net.TransistorNetHandler;
 import net.minecraft.client.Minecraft;
@@ -14,7 +13,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import org.lwjgl.opengl.GL11;
@@ -42,6 +41,7 @@ public class GuiSelectFunction extends GuiScreen
 		public void draw(int mouseX, int mouseY)
 		{
 			drawRect(x - 1, y - 1, x + w + 1, y + h + 1, mouseOver(mouseX, mouseY) ? 0xAAFFFFFF : 0x33FFFFFF);
+			drawRect(x, y, x + w, y + h, 0xFF000000);
 		}
 
 		public boolean mouseOver(int mouseX, int mouseY)
@@ -78,11 +78,12 @@ public class GuiSelectFunction extends GuiScreen
 		public void draw(int mouseX, int mouseY)
 		{
 			super.draw(mouseX, mouseY);
+
 			drawRect(x, y, x + w, y + h, 0xAA333333);
 
-			if (function.isEmpty())
+			if (data.getSelected() == index)
 			{
-				return;
+				drawRect(x - 1, y - 1, x + w + 1, y + h + 1, 0xFFFDB301);
 			}
 
 			GlStateManager.disableTexture2D();
@@ -95,7 +96,7 @@ public class GuiSelectFunction extends GuiScreen
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-			GuiTransistor.addSpriteToBuffer(buffer, x, y, w, h, function.sprite);
+			Widget.addSpriteToBuffer(buffer, x, y, w, h, function.sprite);
 			tessellator.draw();
 
 			if (mouseOver(mouseX, mouseY) && (Minecraft.getSystemTime() - openedAt) / 250D >= 1D)
@@ -105,10 +106,43 @@ public class GuiSelectFunction extends GuiScreen
 		}
 	}
 
+	private class ButtonConfig extends Button
+	{
+		@Override
+		public void click()
+		{
+			mc.displayGuiScreen(new GuiTransistor(hand));
+		}
+
+		@Override
+		public void addHoverText(List<String> text)
+		{
+			text.add(I18n.format("transistor.configure"));
+		}
+
+		@Override
+		public void draw(int mouseX, int mouseY)
+		{
+			super.draw(mouseX, mouseY);
+			GlStateManager.pushMatrix();
+			GlStateManager.translate(x, y, 0);
+			GlStateManager.scale(2, 2, 2);
+			RenderHelper.enableGUIStandardItemLighting();
+			GlStateManager.enableRescaleNormal();
+			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+			GlStateManager.color(1, 1, 1, 1);
+			GlStateManager.enableDepth();
+			itemRender.renderItemAndEffectIntoGUI(mc.player, mc.player.getHeldItem(hand), 0, 0);
+			GlStateManager.disableRescaleNormal();
+			GlStateManager.popMatrix();
+		}
+	}
+
 	private final TransistorData data;
 	private final EnumHand hand;
 	private final List<Button> buttons;
 	private final long openedAt;
+	private double modifier;
 
 	public GuiSelectFunction(TransistorData d, EnumHand h)
 	{
@@ -116,6 +150,8 @@ public class GuiSelectFunction extends GuiScreen
 		hand = h;
 		buttons = new ArrayList<>();
 		openedAt = Minecraft.getSystemTime();
+
+		buttons.add(new ButtonConfig());
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -126,42 +162,6 @@ public class GuiSelectFunction extends GuiScreen
 				buttons.add(b);
 			}
 		}
-
-		ItemStack transistorItemStack = new ItemStack(TransistorItems.TRANSISTOR);
-
-		buttons.add(new Button()
-		{
-			@Override
-			public void click()
-			{
-				mc.displayGuiScreen(new GuiTransistor(data, hand));
-			}
-
-			@Override
-			public void addHoverText(List<String> text)
-			{
-				text.add("Configure"); //LANG
-			}
-
-			@Override
-			public void draw(int mouseX, int mouseY)
-			{
-				super.draw(mouseX, mouseY);
-				GlStateManager.pushMatrix();
-				GlStateManager.translate(x + 1, y + 1, 0);
-				GlStateManager.scale(2, 2, 1);
-				RenderHelper.enableGUIStandardItemLighting();
-				GlStateManager.enableRescaleNormal();
-				OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
-				GlStateManager.color(1, 1, 1, 1);
-
-				//GlStateManager.enableDepth();
-				itemRender.renderItemAndEffectIntoGUI(mc.player, transistorItemStack, 0, 0);
-
-				GlStateManager.disableRescaleNormal();
-				GlStateManager.popMatrix();
-			}
-		});
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public class GuiSelectFunction extends GuiScreen
 	{
 		super.drawScreen(mouseX, mouseY, partialTicks);
 
-		double modifier = Math.min((Minecraft.getSystemTime() - openedAt) / 250D, 1D);
+		modifier = Math.min((Minecraft.getSystemTime() - openedAt) / 250D, 1D);
 		modifier = modifier * modifier;
 
 		int cx = width / 2;
@@ -193,13 +193,16 @@ public class GuiSelectFunction extends GuiScreen
 			button.draw(mouseX, mouseY);
 		}
 
-		for (Button button : buttons)
+		if (modifier >= 1D)
 		{
-			if (button.mouseOver(mouseX, mouseY))
+			for (Button button : buttons)
 			{
-				List<String> text = new ArrayList<>();
-				button.addHoverText(text);
-				GuiUtils.drawHoveringText(text, mouseX, mouseY, width, height, width, fontRenderer);
+				if (button.mouseOver(mouseX, mouseY))
+				{
+					List<String> text = new ArrayList<>();
+					button.addHoverText(text);
+					GuiUtils.drawHoveringText(text, mouseX, mouseY, width, height, width, fontRenderer);
+				}
 			}
 		}
 	}
@@ -216,7 +219,7 @@ public class GuiSelectFunction extends GuiScreen
 			mc.setIngameFocus();
 		}
 
-		if ((Minecraft.getSystemTime() - openedAt) / 250D >= 1D)
+		if (modifier >= 1D)
 		{
 			for (Button button : buttons)
 			{

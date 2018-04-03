@@ -3,10 +3,8 @@ package com.latmod.transistor;
 import com.latmod.transistor.functions.TransistorFunctions;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
@@ -14,7 +12,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.energy.IEnergyStorage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,7 +21,7 @@ import java.util.Map;
 /**
  * @author LatvianModder
  */
-public class TransistorData implements ICapabilityProvider, IEnergyStorage
+public class TransistorData implements ICapabilityProvider
 {
 	@CapabilityInject(TransistorData.class)
 	public static Capability<TransistorData> CAP;
@@ -34,6 +31,23 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		return stack.getCapability(CAP, null);
 	}
 
+	public static final String[] KEYS = new String[16];
+
+	static
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			KEYS[i] = "Attack_" + (i + 1);
+
+			for (int j = 0; j < 2; j++)
+			{
+				KEYS[i * 2 + 4 + j] = "Upgrade_" + (i + 1) + "_" + (j + 1);
+			}
+
+			KEYS[i + 12] = "Passive_" + (i + 1);
+		}
+	}
+
 	public final ItemStack stack;
 	private long created = -1;
 	private int energy = -1;
@@ -41,16 +55,27 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 	private byte selected = -1;
 	private int xp = -1;
 	private int points = -1;
-	private int unlocked = -1;
+	private Integer unlocked = null;
 	private byte cachedMemoryUsage = -1;
-	private final TransistorFunction[] passive = new TransistorFunction[4];
-	private final TransistorFunction[] attack = new TransistorFunction[4];
-	private final TransistorFunction[] upgrade = new TransistorFunction[8];
+	private final TransistorFunction[] functions = new TransistorFunction[16];
 	private final Map<String, Object> customTempData = new HashMap<>();
 
 	public TransistorData(ItemStack is)
 	{
 		stack = is;
+	}
+
+	private NBTTagCompound getNBT()
+	{
+		NBTTagCompound nbt = stack.getTagCompound();
+
+		if (nbt == null)
+		{
+			nbt = new NBTTagCompound();
+			stack.setTagCompound(nbt);
+		}
+
+		return nbt;
 	}
 
 	@Override
@@ -70,7 +95,7 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 	{
 		if (created == -1)
 		{
-			created = stack.hasTagCompound() && stack.getTagCompound().hasKey("Created") ? stack.getTagCompound().getLong("Created") : -1;
+			created = getNBT().hasKey("Created") ? getNBT().getLong("Created") : -1;
 		}
 
 		return created;
@@ -81,7 +106,7 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		if (getTimeCreated() != value)
 		{
 			created = value;
-			stack.setTagInfo("Created", new NBTTagLong(created));
+			getNBT().setLong("Created", created);
 		}
 	}
 
@@ -98,36 +123,35 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		return l;
 	}
 
-	@Override
-	public int getEnergyStored()
+	public int getEnergy()
 	{
-		if (energy == -1)
+		if (energy < 0)
 		{
-			energy = stack.hasTagCompound() ? stack.getTagCompound().getInteger("Energy") : 0;
+			energy = getNBT().getInteger("Energy");
 		}
 
 		return energy;
 	}
 
-	public void setEnergyStored(int value)
+	public void setEnergy(int value)
 	{
-		if (getEnergyStored() != value)
+		if (getEnergy() != value)
 		{
 			energy = value;
-			stack.setTagInfo("Energy", new NBTTagInt(energy));
+			getNBT().setInteger("Energy", energy);
 		}
+	}
+
+	public int getMaxEnergy()
+	{
+		return getMemory() * 1000;
 	}
 
 	public int getMemory()
 	{
 		if (memory < 0)
 		{
-			memory = stack.hasTagCompound() ? stack.getTagCompound().getByte("Memory") : 0;
-
-			if (memory <= 0)
-			{
-				memory = 16;
-			}
+			memory = getNBT().getByte("Memory");
 		}
 
 		return memory;
@@ -138,7 +162,7 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		if (getMemory() != value)
 		{
 			memory = value;
-			stack.setTagInfo("Memory", new NBTTagInt(memory));
+			getNBT().setInteger("Memory", memory);
 		}
 	}
 
@@ -146,29 +170,32 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 	{
 		if (selected < 0)
 		{
-			selected = stack.hasTagCompound() ? stack.getTagCompound().getByte("Selected") : 0;
+			selected = getNBT().getByte("Selected");
 		}
 
 		return selected;
 	}
 
-	public void setSelected(int value)
+	public boolean setSelected(int value)
 	{
 		byte v = (byte) MathHelper.clamp(value, 0, 3);
 
 		if (getSelected() != v)
 		{
 			selected = v;
-			stack.setTagInfo("Selected", new NBTTagByte(selected));
+			getNBT().setByte("Selected", selected);
 			customTempData.clear();
+			return true;
 		}
+
+		return false;
 	}
 
 	public int getXP()
 	{
 		if (xp < 0)
 		{
-			xp = stack.hasTagCompound() ? stack.getTagCompound().getInteger("XP") : 0;
+			xp = getNBT().getInteger("XP");
 		}
 
 		return xp;
@@ -179,7 +206,7 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		if (getXP() != value)
 		{
 			xp = value;
-			stack.setTagInfo("XP", new NBTTagInt(xp));
+			getNBT().setInteger("XP", xp);
 		}
 	}
 
@@ -192,7 +219,7 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 	{
 		if (points < 0)
 		{
-			points = stack.hasTagCompound() ? stack.getTagCompound().getInteger("Points") : 0;
+			points = getNBT().getInteger("Points");
 		}
 
 		return points;
@@ -203,33 +230,24 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		if (getPoints() != value)
 		{
 			points = value;
-			stack.setTagInfo("Points", new NBTTagInt(points));
+			getNBT().setInteger("Points", points);
 		}
 	}
 
 	public int getUnlocked()
 	{
-		if (unlocked < 0)
+		if (unlocked == null)
 		{
-			unlocked = 0;
+			unlocked = getNBT().getInteger("Unlocked");
+			NBTTagList list = getNBT().getTagList("Available", Constants.NBT.TAG_STRING);
 
-			if (stack.hasTagCompound())
+			for (int i = 0; i < list.tagCount(); i++)
 			{
-				unlocked = stack.getTagCompound().getInteger("Unlocked");
+				TransistorFunction function = TransistorFunctions.get(list.getStringTagAt(i));
 
-				if (stack.getTagCompound().hasKey("Available", Constants.NBT.TAG_LIST))
+				if (!function.isEmpty())
 				{
-					NBTTagList list = stack.getTagCompound().getTagList("Available", Constants.NBT.TAG_STRING);
-
-					for (int i = 0; i < list.tagCount(); i++)
-					{
-						TransistorFunction function = TransistorFunctions.get(list.getStringTagAt(i));
-
-						if (!function.isEmpty())
-						{
-							unlocked |= 1 << function.index;
-						}
-					}
+					unlocked |= 1 << function.index;
 				}
 			}
 		}
@@ -242,57 +260,39 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		if (getUnlocked() != value)
 		{
 			unlocked = value;
-			stack.setTagInfo("Unlocked", new NBTTagInt(unlocked));
+			getNBT().setInteger("Unlocked", unlocked);
 		}
 	}
 
-	public boolean isUnlocked(TransistorFunction function)
+	public boolean isFunctionUnlocked(TransistorFunction function)
 	{
 		return !function.isEmpty() && (getUnlocked() & (1 << function.index)) != 0;
 	}
 
-	public boolean isFunctionInUse(TransistorFunction function)
+	public boolean isSlotUnlocked(int index)
 	{
-		if (!isUnlocked(function))
+		return index < 4 || (getUnlocked() & (1 << (index + 12))) != 0;
+	}
+
+	public int isFunctionInUse(TransistorFunction function)
+	{
+		if (!isFunctionUnlocked(function))
 		{
-			return false;
+			return -1;
 		}
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 16; i++)
 		{
-			if (getAttack(i).equals(function))
+			if (getFunction(i).equals(function))
 			{
-				return true;
-			}
-
-			for (int j = 0; j < 2; j++)
-			{
-				if (getUpgrade(i, j).equals(function))
-				{
-					return true;
-				}
-			}
-
-			if (getPassive(i).equals(function))
-			{
-				return true;
+				return i;
 			}
 		}
 
-		return false;
+		return -1;
 	}
 
-	public boolean isUpgradeSlotUnlocked(int attack, int slot)
-	{
-		return attack >= 0 && attack < 4 && slot >= 0 && slot < 2 && (getUnlocked() & (1 << (attack * 2 + slot + 16))) != 0;
-	}
-
-	public boolean isPassiveSlotUnlocked(int index)
-	{
-		return index >= 0 && index < 4 && (getUnlocked() & (1 << (index + 24))) != 0;
-	}
-
-	public void unlock(TransistorFunction function)
+	public void unlockFunction(TransistorFunction function)
 	{
 		if (!function.isEmpty())
 		{
@@ -300,65 +300,99 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		}
 	}
 
-	private TransistorFunction getFunction(String key)
+	public boolean unlockSlot(int index, boolean points)
 	{
-		if (stack.hasTagCompound())
+		if (index < 4 || isSlotUnlocked(index))
 		{
-			TransistorFunction function;
+			return false;
+		}
+		else if (points)
+		{
+			int p = 1;
 
-			if (stack.getTagCompound().hasKey(key, Constants.NBT.TAG_ANY_NUMERIC))
+			if (index >= 12)
 			{
-				function = TransistorFunctions.get(stack.getTagCompound().getByte(key));
+				p = 2;
+			}
+
+			if (getPoints() >= p)
+			{
+				setPoints(getPoints() - p);
 			}
 			else
 			{
-				function = TransistorFunctions.get(stack.getTagCompound().getString(key));
-			}
-
-			if (isUnlocked(function))
-			{
-				return function;
+				return false;
 			}
 		}
 
-		return TransistorFunctions.EMPTY;
+		setUnlocked(getUnlocked() | (1 << (index + 12)));
+		return true;
 	}
 
-	private void setFunction(String key, TransistorFunction function)
+	public boolean isOverloaded(TransistorFunction function)
 	{
-		if (!function.isEmpty())
+		return false;
+	}
+
+	public TransistorFunction getFunction(int index)
+	{
+		if (index < 0 || index >= 16)
 		{
-			stack.setTagInfo(key, new NBTTagByte(function.index));
+			return TransistorFunctions.EMPTY;
 		}
-		else if (stack.hasTagCompound())
+
+		if (functions[index] == null)
 		{
-			stack.getTagCompound().removeTag(key);
+			TransistorFunction function;
+
+			if (getNBT().hasKey(KEYS[index], Constants.NBT.TAG_ANY_NUMERIC))
+			{
+				function = TransistorFunctions.get(getNBT().getByte(KEYS[index]));
+			}
+			else
+			{
+				function = TransistorFunctions.get(getNBT().getString(KEYS[index]));
+			}
+
+			functions[index] = isFunctionUnlocked(function) ? function : TransistorFunctions.EMPTY;
+		}
+
+		return functions[index];
+	}
+
+	public void setFunction(int index, TransistorFunction function)
+	{
+		if (index < 0 || index >= 16)
+		{
+			return;
+		}
+
+		if (!getFunction(index).equals(function))
+		{
+			functions[index] = function;
+			cachedMemoryUsage = -1;
+
+			if (!function.isEmpty())
+			{
+				getNBT().setByte(KEYS[index], function.index);
+			}
+			else
+			{
+				getNBT().removeTag(KEYS[index]);
+			}
 		}
 	}
 
 	public TransistorFunction getAttack(int index)
 	{
-		if (index < 0 || index >= 4)
-		{
-			return TransistorFunctions.EMPTY;
-		}
-
-		if (attack[index] == null)
-		{
-			attack[index] = getFunction("Attack_" + (index + 1));
-			cachedMemoryUsage = -1;
-		}
-
-		return attack[index];
+		return index < 0 || index >= 4 ? TransistorFunctions.EMPTY : getFunction(index);
 	}
 
 	public void setAttack(int index, TransistorFunction function)
 	{
-		if (index >= 0 && index < 4 && !getAttack(index).equals(function))
+		if (index >= 0 && index < 4)
 		{
-			attack[index] = function;
-			setFunction("Attack_" + (index + 1), function);
-			cachedMemoryUsage = -1;
+			setFunction(index, function);
 		}
 	}
 
@@ -369,29 +403,14 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 
 	public TransistorFunction getUpgrade(int attack, int slot)
 	{
-		if (attack < 0 || attack >= 4 || slot < 0 || slot >= 2)
-		{
-			return TransistorFunctions.EMPTY;
-		}
-
-		int index = attack * 2 + slot;
-
-		if (upgrade[index] == null)
-		{
-			upgrade[index] = getFunction("Upgrade_" + (attack + 1) + "_" + (slot + 1));
-			cachedMemoryUsage = -1;
-		}
-
-		return upgrade[index];
+		return attack < 0 || attack >= 4 || slot < 0 || slot >= 2 ? TransistorFunctions.EMPTY : getFunction(4 + attack * 2 + slot);
 	}
 
 	public void setUpgrade(int attack, int slot, TransistorFunction function)
 	{
-		if (attack >= 0 && attack < 4 && slot >= 0 && slot < 2 && !getUpgrade(attack, slot).equals(function))
+		if (attack >= 0 && attack < 4 && slot >= 0 && slot < 2)
 		{
-			upgrade[attack * 2 + slot] = function;
-			setFunction("Upgrade_" + (attack + 1) + "_" + (slot + 1), function);
-			cachedMemoryUsage = -1;
+			setFunction(4 + attack * 2 + slot, function);
 		}
 	}
 
@@ -408,29 +427,29 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		return false;
 	}
 
+	public boolean isUpgradeSlotUnlocked(int attack, int slot)
+	{
+		return attack >= 0 && attack < 4 && slot >= 0 && slot < 2 && isSlotUnlocked(attack * 2 + slot + 4);
+	}
+
+	public void unlockUpgradeSlot(int attack, int slot)
+	{
+		if (attack >= 0 && attack < 4 && slot >= 0 && slot < 2)
+		{
+			setUnlocked(getUnlocked() | (1 << (attack * 2 + slot + 16)));
+		}
+	}
+
 	public TransistorFunction getPassive(int index)
 	{
-		if (index < 0 || index >= 4)
-		{
-			return TransistorFunctions.EMPTY;
-		}
-
-		if (passive[index] == null)
-		{
-			passive[index] = getFunction("Passive_" + (index + 1));
-			cachedMemoryUsage = -1;
-		}
-
-		return passive[index];
+		return index < 0 || index >= 4 ? TransistorFunctions.EMPTY : getFunction(index + 12);
 	}
 
 	public void setPassive(int index, TransistorFunction function)
 	{
-		if (index >= 0 && index < 4 && !getPassive(index).equals(function))
+		if (index >= 0 && index < 4)
 		{
-			passive[index] = function;
-			setFunction("Passive_" + (index + 1), function);
-			cachedMemoryUsage = -1;
+			setFunction(index + 12, function);
 		}
 	}
 
@@ -447,42 +466,17 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		return false;
 	}
 
-	@Override
-	public int receiveEnergy(int maxReceive, boolean simulate)
+	public boolean isPassiveSlotUnlocked(int index)
 	{
-		int e = getEnergyStored();
-		int r = Math.min(getMaxEnergyStored() - e, maxReceive);
+		return index >= 0 && index < 4 && isSlotUnlocked(index + 12);
+	}
 
-		if (!simulate && r > 0)
+	public void unlockPassiveSlot(int index)
+	{
+		if (index >= 0 && index < 4)
 		{
-			setEnergyStored(e + r);
+			setUnlocked(getUnlocked() | (1 << (index + 24)));
 		}
-
-		return r;
-	}
-
-	@Override
-	public int extractEnergy(int maxExtract, boolean simulate)
-	{
-		return 0;
-	}
-
-	@Override
-	public int getMaxEnergyStored()
-	{
-		return getMemory() * 1000;
-	}
-
-	@Override
-	public boolean canExtract()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean canReceive()
-	{
-		return true;
 	}
 
 	public void setCustomTempData(String key, @Nullable Object object)
@@ -517,9 +511,9 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 			getPassive(i).onPassiveUpdate(this, player, isSelected);
 		}
 
-		if (!player.world.isRemote && getTick(player.world) % 200L == 0L)
+		if (getTick(player.world) % 200L == 199L) //TODO: Check last function use instead
 		{
-			receiveEnergy(1000, false);
+			setEnergy(Math.min(getMaxEnergy(), getEnergy() + 1000));
 		}
 	}
 
@@ -549,26 +543,9 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 
 		cachedMemoryUsage = 0;
 
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 16; i++)
 		{
-			TransistorFunction function = getAttack(i);
-
-			if (!function.isEmpty())
-			{
-				cachedMemoryUsage += function.memory;
-			}
-
-			for (int j = 0; j < 2; j++)
-			{
-				function = getUpgrade(i, j);
-
-				if (!function.isEmpty())
-				{
-					cachedMemoryUsage += function.memory;
-				}
-			}
-
-			function = getPassive(i);
+			TransistorFunction function = getFunction(i);
 
 			if (!function.isEmpty())
 			{
@@ -577,5 +554,66 @@ public class TransistorData implements ICapabilityProvider, IEnergyStorage
 		}
 
 		return cachedMemoryUsage;
+	}
+
+	public boolean installFunction(int index, int f)
+	{
+		if (index < 0 || index >= 16 || !getFunction(index).isEmpty() || !isSlotUnlocked(index))
+		{
+			return false;
+		}
+
+		TransistorFunction function = TransistorFunctions.get(f);
+
+		if (!function.isEmpty() && isFunctionUnlocked(function) && getUsedMemory() + function.memory <= getMemory())
+		{
+			if (index >= 4 && index < 12 && getAttack((index - 4) / 2).isEmpty())
+			{
+				return false;
+			}
+
+			setFunction(index, function);
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean uninstallFunction(int index)
+	{
+		if (index < 0 || index >= 16 || getFunction(index).isEmpty())
+		{
+			return false;
+		}
+
+		if (index < 4)
+		{
+			setFunction(index * 2 + 4, TransistorFunctions.EMPTY);
+			setFunction(index * 2 + 5, TransistorFunctions.EMPTY);
+		}
+
+		setFunction(index, TransistorFunctions.EMPTY);
+		return true;
+	}
+
+	public boolean installMemory()
+	{
+		return false;
+	}
+
+	public boolean canUseEnergy(int energy)
+	{
+		return getEnergy() > 0;
+	}
+
+	public boolean useEnergy(World world, int energy)
+	{
+		if (canUseEnergy(energy))
+		{
+			setEnergy(Math.max(0, getEnergy() - energy));
+			return true;
+		}
+
+		return false;
 	}
 }

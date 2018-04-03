@@ -4,9 +4,10 @@
 	"result": {
 		"item": "transistor",
 		"nbt": {
+			"Memory": 16,
+			"Energy": 16000,
 			"Available": ["crash"],
-			"Attack_1": "crash",
-			"Energy": 16000
+			"Attack_1": "crash"
 		}
 	},
 	"pattern": [

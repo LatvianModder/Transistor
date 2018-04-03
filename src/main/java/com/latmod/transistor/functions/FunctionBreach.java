@@ -22,9 +22,20 @@ public class FunctionBreach extends TransistorFunction
 	}
 
 	@Override
+	public String getEffect(TransistorFunction upgrade)
+	{
+		if (upgrade == TransistorFunctions.MASK)
+		{
+			return "transistor.effect.glow";
+		}
+
+		return "";
+	}
+
+	@Override
 	public boolean onAttack(TransistorData data, EntityPlayer player)
 	{
-		if (!player.world.isRemote)
+		if (!player.world.isRemote && data.useEnergy(player.world, 4000))
 		{
 			EntityArrow arrow;
 
@@ -38,9 +49,9 @@ public class FunctionBreach extends TransistorFunction
 				((EntityTippedArrow) arrow).setPotionEffect(new ItemStack(Items.ARROW));
 			}
 
-			arrow.shoot(player, player.rotationPitch, player.rotationYaw, 0F, 7F, 0F);
+			arrow.shoot(player, player.rotationPitch, player.rotationYaw, 0F, 10F, 0F);
 			arrow.setIsCritical(true);
-			arrow.setDamage(1D);
+			arrow.setDamage(1.5D);
 			arrow.setKnockbackStrength(1);
 			NBTTagCompound nbt = new NBTTagCompound();
 			arrow.writeEntityToNBT(nbt);
