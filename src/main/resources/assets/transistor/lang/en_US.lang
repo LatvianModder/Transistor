@@ -3,24 +3,11 @@ item.transistor.transistor.name=Transistor
 
 transistor.function=Function
 transistor.function.empty=Empty
-transistor.function.crash=Crash()
-transistor.function.breach=Breach()
-transistor.function.spark=Spark()
-transistor.function.jaunt=Jaunt()
-transistor.function.bounce=Bounce()
-transistor.function.load=Load()
-transistor.function.help=Help()
-transistor.function.mask=Mask()
-transistor.function.ping=Ping()
-transistor.function.switch=Switch()
-transistor.function.get=Get()
-transistor.function.purge=Purge()
-transistor.function.flood=Flood()
-transistor.function.cull=Cull()
-transistor.function.tap=Tap()
-transistor.function.void=Void()
 
 transistor.energy=Energy
 transistor.memory=Memory
 transistor.xp=XP
+transistor.locked=Locked!
+transistor.available_points=Available Points
+transistor.required_points=Required Points to Unlock
 transistor.available_functions=Available Functions

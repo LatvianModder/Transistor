@@ -2,14 +2,22 @@ package com.latmod.transistor.client;
 
 import com.latmod.transistor.TransistorData;
 import com.latmod.transistor.TransistorFunction;
+import com.latmod.transistor.TransistorItems;
 import com.latmod.transistor.net.MessageSelectFunction;
 import com.latmod.transistor.net.TransistorNetHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.client.config.GuiUtils;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,26 +27,26 @@ import java.util.List;
  */
 public class GuiSelectFunction extends GuiScreen
 {
-	private final TransistorData data;
-	private final Button[] buttons;
-
-	private class Button
+	public static class Button
 	{
-		public int x, y;
-		public List<String> hover = new ArrayList<>();
+		public int x, y, w = 32, h = 32;
 
 		public void click()
 		{
 		}
 
+		public void addHoverText(List<String> text)
+		{
+		}
+
 		public void draw(int mouseX, int mouseY)
 		{
-			drawRect(x - 1, y - 1, x + 33, y + 33, mouseOver(mouseX, mouseY) ? 0xAAFFFFFF : 0x33FFFFFF);
+			drawRect(x - 1, y - 1, x + w + 1, y + h + 1, mouseOver(mouseX, mouseY) ? 0xAAFFFFFF : 0x33FFFFFF);
 		}
 
 		public boolean mouseOver(int mouseX, int mouseY)
 		{
-			return mouseX >= x && mouseX <= x + 32 && mouseY >= y && mouseY <= y + 32;
+			return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
 		}
 	}
 
@@ -51,21 +59,26 @@ public class GuiSelectFunction extends GuiScreen
 		{
 			index = i;
 			function = data.getAttack(index);
-			hover.add(function.getDisplayName());
 		}
 
 		@Override
 		public void click()
 		{
 			data.setSelected(index);
-			TransistorNetHandler.NET.sendToServer(new MessageSelectFunction(index));
+			TransistorNetHandler.NET.sendToServer(new MessageSelectFunction(index, hand));
+		}
+
+		@Override
+		public void addHoverText(List<String> text)
+		{
+			text.add(function.getDisplayName());
 		}
 
 		@Override
 		public void draw(int mouseX, int mouseY)
 		{
 			super.draw(mouseX, mouseY);
-			drawRect(x, y, x + 32, y + 32, 0xAA333333);
+			drawRect(x, y, x + w, y + h, 0xAA333333);
 
 			if (function.isEmpty())
 			{
@@ -78,46 +91,77 @@ public class GuiSelectFunction extends GuiScreen
 			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			GlStateManager.enableTexture2D();
 			GlStateManager.color(1F, 1F, 1F, 1F);
-			mc.getTextureManager().bindTexture(function.texture);
+			mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 			Tessellator tessellator = Tessellator.getInstance();
-			BufferBuilder bufferbuilder = tessellator.getBuffer();
-			bufferbuilder.begin(7, DefaultVertexFormats.POSITION_TEX);
-			bufferbuilder.pos(x, y + 32, 0).tex(0, 1).endVertex();
-			bufferbuilder.pos(x + 32, y + 32, 0).tex(1, 1).endVertex();
-			bufferbuilder.pos(x + 32, y, 0).tex(1, 0).endVertex();
-			bufferbuilder.pos(x, y, 0).tex(0, 0).endVertex();
+			BufferBuilder buffer = tessellator.getBuffer();
+			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+			GuiTransistor.addSpriteToBuffer(buffer, x, y, w, h, function.sprite);
 			tessellator.draw();
+
+			if (mouseOver(mouseX, mouseY) && (Minecraft.getSystemTime() - openedAt) / 250D >= 1D)
+			{
+				drawRect(x, y, x + w, y + h, 0x33FFFFFF);
+			}
 		}
 	}
 
-	public GuiSelectFunction(TransistorData d)
+	private final TransistorData data;
+	private final EnumHand hand;
+	private final List<Button> buttons;
+	private final long openedAt;
+
+	public GuiSelectFunction(TransistorData d, EnumHand h)
 	{
 		data = d;
-		buttons = new Button[8];
+		hand = h;
+		buttons = new ArrayList<>();
+		openedAt = Minecraft.getSystemTime();
 
 		for (int i = 0; i < 4; i++)
 		{
-			buttons[i] = new ButtonFunction(i);
+			ButtonFunction b = new ButtonFunction(i);
+
+			if (!b.function.isEmpty())
+			{
+				buttons.add(b);
+			}
 		}
 
-		buttons[4] = new Button();
-		buttons[5] = new Button();
-		buttons[6] = new Button();
-		buttons[7] = new Button();
-	}
+		ItemStack transistorItemStack = new ItemStack(TransistorItems.TRANSISTOR);
 
-	@Override
-	public void initGui()
-	{
-		int cx = width / 2;
-		int cy = height / 2;
-
-		for (int i = 0; i < 4; i++)
+		buttons.add(new Button()
 		{
-			buttons[i].x = buttons[i + 4].x = cx - 76 + i * 40;
-			buttons[i].y = cy - 48;
-			buttons[i + 4].y = cy + 16;
-		}
+			@Override
+			public void click()
+			{
+				mc.displayGuiScreen(new GuiTransistor(data, hand));
+			}
+
+			@Override
+			public void addHoverText(List<String> text)
+			{
+				text.add("Configure"); //LANG
+			}
+
+			@Override
+			public void draw(int mouseX, int mouseY)
+			{
+				super.draw(mouseX, mouseY);
+				GlStateManager.pushMatrix();
+				GlStateManager.translate(x + 1, y + 1, 0);
+				GlStateManager.scale(2, 2, 1);
+				RenderHelper.enableGUIStandardItemLighting();
+				GlStateManager.enableRescaleNormal();
+				OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240, 240);
+				GlStateManager.color(1, 1, 1, 1);
+
+				//GlStateManager.enableDepth();
+				itemRender.renderItemAndEffectIntoGUI(mc.player, transistorItemStack, 0, 0);
+
+				GlStateManager.disableRescaleNormal();
+				GlStateManager.popMatrix();
+			}
+		});
 	}
 
 	@Override
@@ -129,6 +173,21 @@ public class GuiSelectFunction extends GuiScreen
 	@Override
 	public void drawScreen(int mouseX, int mouseY, float partialTicks)
 	{
+		super.drawScreen(mouseX, mouseY, partialTicks);
+
+		double modifier = Math.min((Minecraft.getSystemTime() - openedAt) / 250D, 1D);
+		modifier = modifier * modifier;
+
+		int cx = width / 2;
+		int cy = height / 2;
+
+		for (int i = 0; i < buttons.size(); i++)
+		{
+			double d = i * Math.PI * 2D / (double) buttons.size() - Math.PI * ((1D - modifier) + 1D) / 2D;
+			buttons.get(i).x = cx + (int) (Math.cos(d) * 60D * modifier - 16D);
+			buttons.get(i).y = cy + (int) (Math.sin(d) * 60D * modifier - 16D);
+		}
+
 		for (Button button : buttons)
 		{
 			button.draw(mouseX, mouseY);
@@ -138,28 +197,35 @@ public class GuiSelectFunction extends GuiScreen
 		{
 			if (button.mouseOver(mouseX, mouseY))
 			{
-				GuiUtils.drawHoveringText(button.hover, mouseX, mouseY, width, height, width, fontRenderer);
+				List<String> text = new ArrayList<>();
+				button.addHoverText(text);
+				GuiUtils.drawHoveringText(text, mouseX, mouseY, width, height, width, fontRenderer);
 			}
 		}
 	}
 
 	@Override
-	protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
+	protected void mouseReleased(int x, int y, int mouseButton)
 	{
-	}
-
-	@Override
-	protected void mouseReleased(int mouseX, int mouseY, int state)
-	{
-		for (Button button : buttons)
-		{
-			if (button.mouseOver(mouseX, mouseY))
-			{
-				button.click();
-				break;
-			}
-		}
+		super.mouseReleased(x, y, mouseButton);
 
 		mc.displayGuiScreen(null);
+
+		if (mc.currentScreen == null)
+		{
+			mc.setIngameFocus();
+		}
+
+		if ((Minecraft.getSystemTime() - openedAt) / 250D >= 1D)
+		{
+			for (Button button : buttons)
+			{
+				if (button.mouseOver(x, y))
+				{
+					button.click();
+					return;
+				}
+			}
+		}
 	}
 }

@@ -1,9 +1,11 @@
 package com.latmod.transistor;
 
+import com.latmod.transistor.functions.TransistorFunctions;
 import com.latmod.transistor.net.TransistorNetHandler;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 
@@ -36,10 +38,10 @@ public class TransistorCommon
 
 	public void postInit()
 	{
-		TransistorFunctions.registerAll();
+		TransistorFunctions.init();
 	}
 
-	public void openGui(TransistorData data)
+	public void openGui(TransistorData data, EnumHand hand)
 	{
 	}
 }

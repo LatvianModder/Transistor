@@ -1,7 +1,14 @@
 {
 	"type": "forge:ore_shaped",
 	"group": "transistor",
-	"result": {"item": "transistor"},
+	"result": {
+		"item": "transistor",
+		"nbt": {
+			"Available": ["crash"],
+			"Attack_1": "crash",
+			"Energy": 16000
+		}
+	},
 	"pattern": [
 		" GN",
 		"ERG",
