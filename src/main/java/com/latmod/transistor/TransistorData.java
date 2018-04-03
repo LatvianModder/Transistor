@@ -210,6 +210,11 @@ public class TransistorData implements ICapabilityProvider
 		}
 	}
 
+	public void addXP(World world, int xp)
+	{
+		setXP(getXP() + xp);
+	}
+
 	public int getNextLevelXP()
 	{
 		return 100;

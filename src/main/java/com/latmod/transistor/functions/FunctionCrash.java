@@ -83,6 +83,19 @@ public class FunctionCrash extends TransistorFunction
 			target.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 100));
 		}
 
+		int xp = 7;
+
+		if (data.hasUpgrade(TransistorFunctions.SPARK))
+		{
+			xp *= 2;
+		}
+
+		if (data.hasUpgrade(TransistorFunctions.PING))
+		{
+			xp *= 0.6D;
+		}
+
+		data.addXP(player.world, xp);
 		return true;
 	}
 
@@ -122,6 +135,11 @@ public class FunctionCrash extends TransistorFunction
 	@Override
 	public float getBlockDestroySpeed(TransistorData data, IBlockState state)
 	{
+		if (!data.canUseEnergy(100))
+		{
+			return 0F;
+		}
+
 		float speed = 6F;
 
 		if (data.hasUpgrade(TransistorFunctions.SPARK))
@@ -141,5 +159,6 @@ public class FunctionCrash extends TransistorFunction
 	public void onBlockDestroyed(TransistorData data, IBlockState state, BlockPos pos, EntityPlayer player)
 	{
 		data.useEnergy(player.world, 100);
+		data.addXP(player.world, 1);
 	}
 }
