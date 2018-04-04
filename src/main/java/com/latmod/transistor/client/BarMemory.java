@@ -1,5 +1,8 @@
 package com.latmod.transistor.client;
 
+import com.latmod.transistor.net.MessageInstallMemory;
+import com.latmod.transistor.net.TransistorNetHandler;
+import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.text.TextFormatting;
 
@@ -13,6 +16,25 @@ public class BarMemory extends Bar
 	public BarMemory(GuiTransistor g, int _x, int _y)
 	{
 		super(g, _x, _y);
+	}
+
+	@Override
+	public void click(boolean left)
+	{
+		if (gui.data.getPoints() > 0 && gui.data.getMemory() < 32)
+		{
+			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
+				gui.mc.displayGuiScreen(gui);
+
+				if (result)
+				{
+					if (gui.data.installMemory())
+					{
+						TransistorNetHandler.NET.sendToServer(new MessageInstallMemory(gui.hand));
+					}
+				}
+			}, I18n.format("transistor.install_memory_q"), I18n.format("transistor.costs_1_point"), 0));
+		}
 	}
 
 	@Override

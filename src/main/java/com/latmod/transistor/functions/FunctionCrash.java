@@ -54,10 +54,10 @@ public class FunctionCrash extends TransistorFunction
 	@Override
 	public void onPassiveUpdate(TransistorData data, EntityPlayer player, boolean isSelected)
 	{
-		if (data.getTick(player.world) % 20L == 0L)
+		if (data.getTick(player.world) % 60L == 0L)
 		{
-			player.addPotionEffect(new PotionEffect(MobEffects.HASTE, 20, 0, true, false));
-			player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 20, 0, true, false));
+			player.addPotionEffect(new PotionEffect(MobEffects.HASTE, 60, 3, true, false));
+			player.addPotionEffect(new PotionEffect(MobEffects.STRENGTH, 60, 1, true, false));
 		}
 	}
 

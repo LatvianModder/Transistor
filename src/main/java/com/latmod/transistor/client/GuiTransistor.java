@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
@@ -15,6 +16,7 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class GuiTransistor extends GuiScreen
 	public int sizeX, sizeY, posX, posY;
 	private final List<Widget> widgets;
 	public ButtonFunction selectedFunction = null;
+	private int clickX = -1, clickY = -1;
 
 	public GuiTransistor(EnumHand h)
 	{
@@ -116,6 +119,14 @@ public class GuiTransistor extends GuiScreen
 			widget.draw(mouseX, mouseY);
 		}
 
+		if (selectedButton != null && isDragging(mouseX, mouseY))
+		{
+			mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+			Widget.addSpriteToBuffer(buffer, mouseX, mouseY, 16, 16, selectedFunction.function.sprite);
+			tessellator.draw();
+		}
+
 		for (Widget widget : widgets)
 		{
 			if (widget.mouseOver(mouseX, mouseY))
@@ -128,16 +139,48 @@ public class GuiTransistor extends GuiScreen
 	}
 
 	@Override
-	protected void mouseReleased(int x, int y, int mouseButton)
+	protected void mouseClicked(int x, int y, int mouseButton) throws IOException
 	{
-		super.mouseReleased(x, y, mouseButton);
+		super.mouseClicked(x, y, mouseButton);
 
 		for (Widget widget : widgets)
 		{
 			if (widget.mouseOver(x, y))
 			{
 				widget.click(mouseButton == 0);
-				return;
+				break;
+			}
+		}
+
+		if (selectedFunction != null && mouseButton == 0)
+		{
+			clickX = x;
+			clickY = y;
+		}
+	}
+
+	public boolean isDragging(int x, int y)
+	{
+		return clickX != 1 && clickY != -1 && (x - clickX) * (x - clickX) + (y - clickY) * (y - clickY) >= 16;
+	}
+
+	@Override
+	protected void mouseReleased(int x, int y, int mouseButton)
+	{
+		super.mouseReleased(x, y, mouseButton);
+
+		if (mouseButton == 0 && selectedFunction != null && isDragging(x, y))
+		{
+			clickX = -1;
+			clickY = -1;
+
+			for (Widget widget : widgets)
+			{
+				if (widget.mouseOver(x, y))
+				{
+					widget.click(true);
+					return;
+				}
 			}
 		}
 	}

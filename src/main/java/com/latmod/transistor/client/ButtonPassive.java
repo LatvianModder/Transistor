@@ -42,7 +42,7 @@ public class ButtonPassive extends ButtonFunctionBase
 						TransistorNetHandler.NET.sendToServer(new MessageUnlockSlot(getIndex(), gui.hand));
 					}
 				}
-			}, I18n.format("transistor.unlock_passive_slot_q"), "", 0));
+			}, I18n.format("transistor.unlock_passive_slot_q"), I18n.format("transistor.costs_2_points"), 0));
 		}
 		else
 		{

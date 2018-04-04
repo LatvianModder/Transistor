@@ -65,7 +65,7 @@ public class FunctionJaunt extends TransistorFunction
 			BlockPos pos = result.getBlockPos().offset(result.sideHit);
 			data.setCustomTempData("Jaunt_Pos", pos);
 
-			if (player.world.isRemote && isSelected)
+			if (player.world.isRemote && isSelected && data.canUseEnergy(4000))
 			{
 				for (int i = 0; i < 8; i++)
 				{

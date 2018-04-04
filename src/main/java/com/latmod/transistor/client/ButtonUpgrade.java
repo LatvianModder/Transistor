@@ -45,7 +45,7 @@ public class ButtonUpgrade extends ButtonFunctionBase
 						TransistorNetHandler.NET.sendToServer(new MessageUnlockSlot(getIndex(), gui.hand));
 					}
 				}
-			}, I18n.format("transistor.unlock_upgrade_slot_q"), "", 0));
+			}, I18n.format("transistor.unlock_upgrade_slot_q"), I18n.format("transistor.costs_1_point"), 0));
 		}
 		else
 		{

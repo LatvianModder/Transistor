@@ -49,14 +49,16 @@ public class TransistorData implements ICapabilityProvider
 	}
 
 	public final ItemStack stack;
-	private long created = -1;
-	private int energy = -1;
-	private byte memory = -1;
-	private byte selected = -1;
-	private int xp = -1;
-	private int points = -1;
-	private Integer unlocked = null;
-	private byte cachedMemoryUsage = -1;
+	private boolean loaded = false;
+	private long created;
+	private int energy;
+	private long rechargeAt;
+	private byte memory;
+	private byte selected;
+	private int xp;
+	private int points;
+	private int unlocked;
+	private byte cachedMemoryUsage;
 	private final TransistorFunction[] functions = new TransistorFunction[16];
 	private final Map<String, Object> customTempData = new HashMap<>();
 
@@ -78,6 +80,36 @@ public class TransistorData implements ICapabilityProvider
 		return nbt;
 	}
 
+	private void load()
+	{
+		if (loaded)
+		{
+			return;
+		}
+
+		loaded = true;
+		NBTTagCompound nbt = getNBT();
+		created = nbt.hasKey("Created") ? nbt.getLong("Created") : -1;
+		energy = nbt.getInteger("Energy");
+		rechargeAt = nbt.getLong("RechargeAt");
+		memory = nbt.getByte("Memory");
+		selected = nbt.getByte("Selected");
+		xp = nbt.getInteger("XP");
+		points = nbt.getInteger("Points");
+		unlocked = nbt.getInteger("Unlocked");
+		NBTTagList list = nbt.getTagList("Available", Constants.NBT.TAG_STRING);
+
+		for (int i = 0; i < list.tagCount(); i++)
+		{
+			TransistorFunction function = TransistorFunctions.get(list.getStringTagAt(i));
+
+			if (!function.isEmpty())
+			{
+				unlocked |= 1 << function.index;
+			}
+		}
+	}
+
 	@Override
 	public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
 	{
@@ -93,11 +125,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public long getTimeCreated()
 	{
-		if (created == -1)
-		{
-			created = getNBT().hasKey("Created") ? getNBT().getLong("Created") : -1;
-		}
-
+		load();
 		return created;
 	}
 
@@ -125,11 +153,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public int getEnergy()
 	{
-		if (energy < 0)
-		{
-			energy = getNBT().getInteger("Energy");
-		}
-
+		load();
 		return energy;
 	}
 
@@ -142,6 +166,21 @@ public class TransistorData implements ICapabilityProvider
 		}
 	}
 
+	public long getRechargeAt()
+	{
+		load();
+		return rechargeAt;
+	}
+
+	public void setRechargeAt(long value)
+	{
+		if (getRechargeAt() != value)
+		{
+			rechargeAt = value;
+			getNBT().setLong("RechargeAt", rechargeAt);
+		}
+	}
+
 	public int getMaxEnergy()
 	{
 		return getMemory() * 1000;
@@ -149,11 +188,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public int getMemory()
 	{
-		if (memory < 0)
-		{
-			memory = getNBT().getByte("Memory");
-		}
-
+		load();
 		return memory;
 	}
 
@@ -168,11 +203,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public byte getSelected()
 	{
-		if (selected < 0)
-		{
-			selected = getNBT().getByte("Selected");
-		}
-
+		load();
 		return selected;
 	}
 
@@ -193,11 +224,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public int getXP()
 	{
-		if (xp < 0)
-		{
-			xp = getNBT().getInteger("XP");
-		}
-
+		load();
 		return xp;
 	}
 
@@ -222,11 +249,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public int getPoints()
 	{
-		if (points < 0)
-		{
-			points = getNBT().getInteger("Points");
-		}
-
+		load();
 		return points;
 	}
 
@@ -241,22 +264,7 @@ public class TransistorData implements ICapabilityProvider
 
 	public int getUnlocked()
 	{
-		if (unlocked == null)
-		{
-			unlocked = getNBT().getInteger("Unlocked");
-			NBTTagList list = getNBT().getTagList("Available", Constants.NBT.TAG_STRING);
-
-			for (int i = 0; i < list.tagCount(); i++)
-			{
-				TransistorFunction function = TransistorFunctions.get(list.getStringTagAt(i));
-
-				if (!function.isEmpty())
-				{
-					unlocked |= 1 << function.index;
-				}
-			}
-		}
-
+		load();
 		return unlocked;
 	}
 
@@ -437,14 +445,6 @@ public class TransistorData implements ICapabilityProvider
 		return attack >= 0 && attack < 4 && slot >= 0 && slot < 2 && isSlotUnlocked(attack * 2 + slot + 4);
 	}
 
-	public void unlockUpgradeSlot(int attack, int slot)
-	{
-		if (attack >= 0 && attack < 4 && slot >= 0 && slot < 2)
-		{
-			setUnlocked(getUnlocked() | (1 << (attack * 2 + slot + 16)));
-		}
-	}
-
 	public TransistorFunction getPassive(int index)
 	{
 		return index < 0 || index >= 4 ? TransistorFunctions.EMPTY : getFunction(index + 12);
@@ -474,14 +474,6 @@ public class TransistorData implements ICapabilityProvider
 	public boolean isPassiveSlotUnlocked(int index)
 	{
 		return index >= 0 && index < 4 && isSlotUnlocked(index + 12);
-	}
-
-	public void unlockPassiveSlot(int index)
-	{
-		if (index >= 0 && index < 4)
-		{
-			setUnlocked(getUnlocked() | (1 << (index + 24)));
-		}
 	}
 
 	public void setCustomTempData(String key, @Nullable Object object)
@@ -516,26 +508,10 @@ public class TransistorData implements ICapabilityProvider
 			getPassive(i).onPassiveUpdate(this, player, isSelected);
 		}
 
-		if (getTick(player.world) % 200L == 199L) //TODO: Check last function use instead
+		if (getEnergy() < getMaxEnergy() && player.world.getTotalWorldTime() >= getRechargeAt())
 		{
 			setEnergy(Math.min(getMaxEnergy(), getEnergy() + 1000));
-		}
-	}
-
-	public void selectNext()
-	{
-		int s = getSelected();
-		int o = s;
-
-		while (true)
-		{
-			s = (s + 1) % 4;
-
-			if (s == o || !getAttack(s).isEmpty())
-			{
-				setSelected(s);
-				break;
-			}
+			setRechargeAt(player.world.getTotalWorldTime() + 200L);
 		}
 	}
 
@@ -603,6 +579,13 @@ public class TransistorData implements ICapabilityProvider
 
 	public boolean installMemory()
 	{
+		if (getPoints() >= 1 && getMemory() < 32)
+		{
+			setMemory((byte) (getMemory() + 1));
+			setPoints(getPoints() - 1);
+			return true;
+		}
+
 		return false;
 	}
 
@@ -616,6 +599,7 @@ public class TransistorData implements ICapabilityProvider
 		if (canUseEnergy(energy))
 		{
 			setEnergy(Math.max(0, getEnergy() - energy));
+			setRechargeAt(Math.max(getRechargeAt(), world.getTotalWorldTime() + 200L));
 			return true;
 		}
 
