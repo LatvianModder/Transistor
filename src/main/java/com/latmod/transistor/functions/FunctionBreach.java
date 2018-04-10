@@ -28,6 +28,10 @@ public class FunctionBreach extends TransistorFunction
 		{
 			return "transistor.effect.glow";
 		}
+		else if (upgrade == TransistorFunctions.SPARK)
+		{
+			return "transistor.effect.split";
+		}
 
 		return "";
 	}
@@ -37,28 +41,33 @@ public class FunctionBreach extends TransistorFunction
 	{
 		if (!player.world.isRemote && data.useEnergy(player.world, 4000))
 		{
-			EntityArrow arrow;
+			int split = data.hasUpgrade(TransistorFunctions.SPARK) ? 1 : 0;
 
-			if (data.hasUpgrade(TransistorFunctions.MASK))
+			for (int i = -split; i <= split; i++)
 			{
-				arrow = new EntitySpectralArrow(player.world, player);
-			}
-			else
-			{
-				arrow = new EntityTippedArrow(player.world, player);
-				((EntityTippedArrow) arrow).setPotionEffect(new ItemStack(Items.ARROW));
-			}
+				EntityArrow arrow;
 
-			arrow.shoot(player, player.rotationPitch, player.rotationYaw, 0F, 10F, 0F);
-			arrow.setIsCritical(true);
-			arrow.setDamage(1.5D);
-			arrow.setKnockbackStrength(1);
-			NBTTagCompound nbt = new NBTTagCompound();
-			arrow.writeEntityToNBT(nbt);
-			nbt.setInteger("life", 1199);
-			arrow.readEntityFromNBT(nbt);
-			arrow.pickupStatus = EntityArrow.PickupStatus.CREATIVE_ONLY;
-			player.world.spawnEntity(arrow);
+				if (data.hasUpgrade(TransistorFunctions.MASK))
+				{
+					arrow = new EntitySpectralArrow(player.world, player);
+				}
+				else
+				{
+					arrow = new EntityTippedArrow(player.world, player);
+					((EntityTippedArrow) arrow).setPotionEffect(new ItemStack(Items.ARROW));
+				}
+
+				arrow.shoot(player, player.rotationPitch, player.rotationYaw + i * 10F, 0F, 10F, 0F);
+				arrow.setIsCritical(true);
+				arrow.setDamage(1.5D);
+				arrow.setKnockbackStrength(1);
+				NBTTagCompound nbt = new NBTTagCompound();
+				arrow.writeEntityToNBT(nbt);
+				nbt.setInteger("life", 1199);
+				arrow.readEntityFromNBT(nbt);
+				arrow.pickupStatus = EntityArrow.PickupStatus.CREATIVE_ONLY;
+				player.world.spawnEntity(arrow);
+			}
 		}
 
 		return true;

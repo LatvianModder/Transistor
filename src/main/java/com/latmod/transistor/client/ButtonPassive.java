@@ -1,5 +1,6 @@
 package com.latmod.transistor.client;
 
+import com.latmod.transistor.TransistorFunction;
 import com.latmod.transistor.net.MessageUnlockSlot;
 import com.latmod.transistor.net.TransistorNetHandler;
 import net.minecraft.client.gui.GuiYesNo;
@@ -28,9 +29,9 @@ public class ButtonPassive extends ButtonFunctionBase
 	}
 
 	@Override
-	public void click(boolean left)
+	public void click()
 	{
-		if (left && isLocked() && gui.data.getPoints() >= 2)
+		if (isLocked() && gui.data.getPoints() >= 2)
 		{
 			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
 				gui.mc.displayGuiScreen(gui);
@@ -46,7 +47,7 @@ public class ButtonPassive extends ButtonFunctionBase
 		}
 		else
 		{
-			super.click(left);
+			super.click();
 		}
 	}
 
@@ -67,9 +68,29 @@ public class ButtonPassive extends ButtonFunctionBase
 				text.add(TextFormatting.GRAY + I18n.format("transistor.unlock_passive_slot"));
 			}
 		}
-		else if (!getFunction().isEmpty())
+		else
 		{
-			text.add(TextFormatting.GRAY + I18n.format("transistor.uninstall_function"));
+			TransistorFunction function = getFunction();
+
+			if (function.isEmpty() && !gui.selectedFunction.isEmpty())
+			{
+				function = gui.selectedFunction;
+			}
+
+			if (!function.isEmpty())
+			{
+				String s = function.getPassiveEffect();
+
+				if (s.isEmpty())
+				{
+					text.add(TextFormatting.DARK_GRAY + I18n.format("transistor.effect.none"));
+				}
+				else
+				{
+					text.add(I18n.format("transistor.effects") + ":");
+					text.add(TextFormatting.BLUE + "+ " + I18n.format(s));
+				}
+			}
 		}
 	}
 

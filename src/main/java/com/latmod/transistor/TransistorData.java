@@ -97,6 +97,7 @@ public class TransistorData implements ICapabilityProvider
 		xp = nbt.getInteger("XP");
 		points = nbt.getInteger("Points");
 		unlocked = nbt.getInteger("Unlocked");
+		cachedMemoryUsage = -1;
 		NBTTagList list = nbt.getTagList("Available", Constants.NBT.TAG_STRING);
 
 		for (int i = 0; i < list.tagCount(); i++)
@@ -599,7 +600,7 @@ public class TransistorData implements ICapabilityProvider
 		if (canUseEnergy(energy))
 		{
 			setEnergy(Math.max(0, getEnergy() - energy));
-			setRechargeAt(Math.max(getRechargeAt(), world.getTotalWorldTime() + 200L));
+			setRechargeAt(Math.max(getRechargeAt(), world.getTotalWorldTime() + (getEnergy() <= 0 ? 600L : 200L)));
 			return true;
 		}
 

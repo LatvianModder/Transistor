@@ -31,9 +31,9 @@ public class ButtonUpgrade extends ButtonFunctionBase
 	}
 
 	@Override
-	public void click(boolean left)
+	public void click()
 	{
-		if (left && isLocked() && gui.data.getPoints() >= 1)
+		if (isLocked() && gui.data.getPoints() >= 1)
 		{
 			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
 				gui.mc.displayGuiScreen(gui);
@@ -49,7 +49,7 @@ public class ButtonUpgrade extends ButtonFunctionBase
 		}
 		else
 		{
-			super.click(left);
+			super.click();
 		}
 	}
 
@@ -70,30 +70,28 @@ public class ButtonUpgrade extends ButtonFunctionBase
 				text.add(TextFormatting.GRAY + I18n.format("transistor.unlock_upgrade_slot"));
 			}
 		}
-		else if (!getFunction().isEmpty())
+		else
 		{
-			text.add(TextFormatting.GRAY + I18n.format("transistor.uninstall_function"));
-		}
+			TransistorFunction function = getFunction();
 
-		TransistorFunction function = getFunction();
-
-		if (function.isEmpty() && gui.selectedFunction != null && !gui.data.getAttack(attack).isEmpty())
-		{
-			function = gui.selectedFunction.function;
-		}
-
-		if (!function.isEmpty())
-		{
-			String s = gui.data.getAttack(attack).getEffect(function);
-
-			if (s.isEmpty())
+			if (function.isEmpty() && !gui.selectedFunction.isEmpty() && !gui.data.getAttack(attack).isEmpty())
 			{
-				text.add(TextFormatting.DARK_GRAY + I18n.format("transistor.effect.none"));
+				function = gui.selectedFunction;
 			}
-			else
+
+			if (!function.isEmpty())
 			{
-				text.add(I18n.format("transistor.effects") + ":");
-				text.add(TextFormatting.BLUE + "+ " + I18n.format(s));
+				String s = gui.data.getAttack(attack).getEffect(function);
+
+				if (s.isEmpty())
+				{
+					text.add(TextFormatting.DARK_GRAY + I18n.format("transistor.effect.none"));
+				}
+				else
+				{
+					text.add(I18n.format("transistor.effects") + ":");
+					text.add(TextFormatting.BLUE + "+ " + I18n.format(s));
+				}
 			}
 		}
 	}

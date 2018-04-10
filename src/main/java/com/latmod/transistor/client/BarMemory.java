@@ -19,7 +19,7 @@ public class BarMemory extends Bar
 	}
 
 	@Override
-	public void click(boolean left)
+	public void click()
 	{
 		if (gui.data.getPoints() > 0 && gui.data.getMemory() < 32)
 		{
@@ -70,6 +70,11 @@ public class BarMemory extends Bar
 	@Override
 	public int getBarColor(int index, int bars, int actualBars)
 	{
+		if (!gui.selectedFunction.isEmpty() && gui.data.getUsedMemory() + gui.selectedFunction.memory > gui.data.getMemory())
+		{
+			return RED;
+		}
+
 		return CYAN;
 	}
 }

@@ -1,8 +1,5 @@
 package com.latmod.transistor.client;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.TextFormatting;
-
 import java.util.List;
 
 /**
@@ -24,11 +21,6 @@ public class ButtonAttack extends ButtonFunctionBase
 		if (!getFunction().isEmpty())
 		{
 			text.add(getFunction().getDisplayName());
-		}
-
-		if (!getFunction().isEmpty())
-		{
-			text.add(TextFormatting.GRAY + I18n.format("transistor.uninstall_function"));
 		}
 	}
 

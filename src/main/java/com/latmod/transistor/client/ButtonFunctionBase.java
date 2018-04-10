@@ -1,16 +1,14 @@
 package com.latmod.transistor.client;
 
 import com.latmod.transistor.TransistorFunction;
+import com.latmod.transistor.functions.TransistorFunctions;
 import com.latmod.transistor.net.MessageInstallFunction;
 import com.latmod.transistor.net.MessageUninstallFunction;
 import com.latmod.transistor.net.TransistorNetHandler;
-import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.resources.I18n;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -31,35 +29,28 @@ public abstract class ButtonFunctionBase extends Widget
 	public abstract int getIndex();
 
 	@Override
-	public void click(boolean left)
+	public void click()
 	{
-		if (getFunction().isEmpty())
+		if (!gui.selectedFunction.isEmpty() && getFunction().isEmpty())
 		{
-			if (left && gui.selectedFunction != null)
-			{
-				int index = getIndex();
-				int func = gui.selectedFunction.function.index;
+			int index = getIndex();
+			int func = gui.selectedFunction.index;
 
-				if (gui.data.installFunction(index, func))
-				{
-					TransistorNetHandler.NET.sendToServer(new MessageInstallFunction(index, func, gui.hand));
-					gui.selectedFunction = null;
-				}
+			if (gui.data.installFunction(index, func))
+			{
+				TransistorNetHandler.NET.sendToServer(new MessageInstallFunction(index, func, gui.hand));
+				gui.selectedFunction = TransistorFunctions.EMPTY;
 			}
 		}
-		else if (!left)
+		else if (gui.selectedFunction.isEmpty() && !getFunction().isEmpty())
 		{
-			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
-				gui.mc.displayGuiScreen(gui);
+			int index = getIndex();
 
-				if (result)
-				{
-					if (gui.data.uninstallFunction(getIndex()))
-					{
-						TransistorNetHandler.NET.sendToServer(new MessageUninstallFunction(getIndex(), gui.hand));
-					}
-				}
-			}, I18n.format("transistor.uninstall_function_q"), "", 0));
+			if (gui.data.uninstallFunction(index))
+			{
+				TransistorNetHandler.NET.sendToServer(new MessageUninstallFunction(index, gui.hand));
+				gui.selectedFunction = getFunction();
+			}
 		}
 	}
 
@@ -75,9 +66,9 @@ public abstract class ButtonFunctionBase extends Widget
 
 		if (!getFunction().isEmpty())
 		{
-			gui.mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			gui.mc.getTextureManager().bindTexture(getFunction().texture);
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-			addSpriteToBuffer(buffer, x + 1, y + 1, shape.w - 2, shape.h - 2, getFunction().sprite);
+			addFullRectToBuffer(buffer, x + 1, y + 1, shape.w - 2, shape.h - 2);
 			tessellator.draw();
 		}
 
@@ -125,7 +116,7 @@ public abstract class ButtonFunctionBase extends Widget
 	@Override
 	public boolean isSelected()
 	{
-		return gui.selectedFunction != null && !gui.selectedFunction.hasError() && !isLocked() && getFunction().isEmpty();
+		return !gui.selectedFunction.isEmpty() && !isLocked() && getFunction().isEmpty();
 	}
 
 	public boolean isLocked()

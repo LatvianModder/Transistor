@@ -2,7 +2,6 @@ package com.latmod.transistor.client;
 
 import com.latmod.transistor.Transistor;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public class Widget
 		shape = s;
 	}
 
-	public void click(boolean left)
+	public void click()
 	{
 	}
 
@@ -71,17 +70,17 @@ public class Widget
 	{
 		float sx = 1F / (float) tw;
 		float sy = 1F / (float) th;
-		buffer.pos(x, y + h, 0D).tex(u * sx, (v + h) * sy).endVertex();
-		buffer.pos(x + w, y + h, 0D).tex((u + w) * sx, (v + h) * sy).endVertex();
-		buffer.pos(x + w, y, 0D).tex((u + w) * sx, v * sy).endVertex();
-		buffer.pos(x, y, 0D).tex(u * sx, v * sy).endVertex();
+		buffer.pos(x, y + h, 0).tex(u * sx, (v + h) * sy).endVertex();
+		buffer.pos(x + w, y + h, 0).tex((u + w) * sx, (v + h) * sy).endVertex();
+		buffer.pos(x + w, y, 0).tex((u + w) * sx, v * sy).endVertex();
+		buffer.pos(x, y, 0).tex(u * sx, v * sy).endVertex();
 	}
 
-	public static void addSpriteToBuffer(BufferBuilder buffer, int x, int y, int w, int h, TextureAtlasSprite sprite)
+	public static void addFullRectToBuffer(BufferBuilder buffer, int x, int y, int w, int h)
 	{
-		buffer.pos(x, y + h, 0D).tex(sprite.getMinU(), sprite.getMaxV()).endVertex();
-		buffer.pos(x + w, y + h, 0D).tex(sprite.getMaxU(), sprite.getMaxV()).endVertex();
-		buffer.pos(x + w, y, 0D).tex(sprite.getMaxU(), sprite.getMinV()).endVertex();
-		buffer.pos(x, y, 0D).tex(sprite.getMinU(), sprite.getMinV()).endVertex();
+		buffer.pos(x, y + h, 0).tex(0, 1).endVertex();
+		buffer.pos(x + w, y + h, 0).tex(1, 1).endVertex();
+		buffer.pos(x + w, y, 0).tex(1, 0).endVertex();
+		buffer.pos(x, y, 0).tex(0, 0).endVertex();
 	}
 }

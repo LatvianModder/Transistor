@@ -246,6 +246,11 @@ public class ItemTransistor extends Item
 		tooltip.add(I18n.format("transistor.memory") + ": " + TextFormatting.GOLD + data.getUsedMemory() + TextFormatting.GRAY + " / " + TextFormatting.GOLD + data.getMemory());
 		tooltip.add(I18n.format("transistor.xp") + ": " + TextFormatting.GREEN + data.getXP());
 
+		if (data.getEnergy() < data.getMaxEnergy() && world != null)
+		{
+			tooltip.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((data.getRechargeAt() - world.getTotalWorldTime()) / 20L + 1L) + "s");
+		}
+
 		if (GuiScreen.isCtrlKeyDown())
 		{
 			tooltip.add("");

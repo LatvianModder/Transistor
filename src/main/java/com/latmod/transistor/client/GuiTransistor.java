@@ -1,14 +1,15 @@
 package com.latmod.transistor.client;
 
 import com.latmod.transistor.TransistorData;
+import com.latmod.transistor.TransistorFunction;
 import com.latmod.transistor.TransistorItems;
+import com.latmod.transistor.functions.TransistorFunctions;
 import com.latmod.transistor.net.MessageSelectFunction;
 import com.latmod.transistor.net.TransistorNetHandler;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
@@ -29,8 +30,7 @@ public class GuiTransistor extends GuiScreen
 	public final EnumHand hand;
 	public int sizeX, sizeY, posX, posY;
 	private final List<Widget> widgets;
-	public ButtonFunction selectedFunction = null;
-	private int clickX = -1, clickY = -1;
+	public TransistorFunction selectedFunction = TransistorFunctions.EMPTY;
 
 	public GuiTransistor(EnumHand h)
 	{
@@ -119,21 +119,23 @@ public class GuiTransistor extends GuiScreen
 			widget.draw(mouseX, mouseY);
 		}
 
-		if (selectedButton != null && isDragging(mouseX, mouseY))
+		if (!selectedFunction.isEmpty())
 		{
-			mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			mc.getTextureManager().bindTexture(selectedFunction.texture);
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-			Widget.addSpriteToBuffer(buffer, mouseX, mouseY, 16, 16, selectedFunction.function.sprite);
+			Widget.addFullRectToBuffer(buffer, mouseX - 8, mouseY - 8, 16, 16);
 			tessellator.draw();
 		}
-
-		for (Widget widget : widgets)
+		else
 		{
-			if (widget.mouseOver(mouseX, mouseY))
+			for (Widget widget : widgets)
 			{
-				List<String> text = new ArrayList<>();
-				widget.addHoverText(text);
-				GuiUtils.drawHoveringText(text, mouseX, mouseY, width, height, width, fontRenderer);
+				if (widget.mouseOver(mouseX, mouseY))
+				{
+					List<String> text = new ArrayList<>();
+					widget.addHoverText(text);
+					GuiUtils.drawHoveringText(text, mouseX, mouseY, width, height, width, fontRenderer);
+				}
 			}
 		}
 	}
@@ -142,46 +144,20 @@ public class GuiTransistor extends GuiScreen
 	protected void mouseClicked(int x, int y, int mouseButton) throws IOException
 	{
 		super.mouseClicked(x, y, mouseButton);
+		boolean s = !selectedFunction.isEmpty();
 
 		for (Widget widget : widgets)
 		{
 			if (widget.mouseOver(x, y))
 			{
-				widget.click(mouseButton == 0);
+				widget.click();
 				break;
 			}
 		}
 
-		if (selectedFunction != null && mouseButton == 0)
+		if (s && !selectedFunction.isEmpty())
 		{
-			clickX = x;
-			clickY = y;
-		}
-	}
-
-	public boolean isDragging(int x, int y)
-	{
-		return clickX != 1 && clickY != -1 && (x - clickX) * (x - clickX) + (y - clickY) * (y - clickY) >= 16;
-	}
-
-	@Override
-	protected void mouseReleased(int x, int y, int mouseButton)
-	{
-		super.mouseReleased(x, y, mouseButton);
-
-		if (mouseButton == 0 && selectedFunction != null && isDragging(x, y))
-		{
-			clickX = -1;
-			clickY = -1;
-
-			for (Widget widget : widgets)
-			{
-				if (widget.mouseOver(x, y))
-				{
-					widget.click(true);
-					return;
-				}
-			}
+			selectedFunction = TransistorFunctions.EMPTY;
 		}
 	}
 

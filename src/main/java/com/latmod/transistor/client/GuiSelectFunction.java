@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumHand;
@@ -92,11 +91,11 @@ public class GuiSelectFunction extends GuiScreen
 			GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			GlStateManager.enableTexture2D();
 			GlStateManager.color(1F, 1F, 1F, 1F);
-			mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+			mc.getTextureManager().bindTexture(function.texture);
 			Tessellator tessellator = Tessellator.getInstance();
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
-			Widget.addSpriteToBuffer(buffer, x, y, w, h, function.sprite);
+			Widget.addFullRectToBuffer(buffer, x, y, w, h);
 			tessellator.draw();
 
 			if (mouseOver(mouseX, mouseY) && (Minecraft.getSystemTime() - openedAt) / 250D >= 1D)

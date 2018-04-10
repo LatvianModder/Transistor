@@ -3,10 +3,10 @@ package com.latmod.transistor;
 import com.google.common.collect.Multimap;
 import com.latmod.transistor.functions.TransistorFunctions;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
@@ -22,9 +22,7 @@ public class TransistorFunction
 	public final String displayName;
 	public final byte memory;
 	public final TextFormatting color;
-
-	@SideOnly(Side.CLIENT)
-	public TextureAtlasSprite sprite;
+	public final ResourceLocation texture;
 
 	public TransistorFunction(int i, String n, int m, TextFormatting c)
 	{
@@ -33,6 +31,7 @@ public class TransistorFunction
 		memory = (byte) m;
 		color = c;
 		displayName = Character.toUpperCase(name.charAt(0)) + name.substring(1) + "()";
+		texture = new ResourceLocation(Transistor.MOD_ID, "textures/functions/" + name + ".png");
 	}
 
 	public final boolean isEmpty()
@@ -62,6 +61,11 @@ public class TransistorFunction
 	}
 
 	public String getEffect(TransistorFunction upgrade)
+	{
+		return "";
+	}
+
+	public String getPassiveEffect()
 	{
 		return "";
 	}

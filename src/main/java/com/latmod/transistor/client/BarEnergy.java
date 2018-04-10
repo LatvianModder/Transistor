@@ -20,6 +20,11 @@ public class BarEnergy extends Bar
 	{
 		text.add(TextFormatting.GREEN + I18n.format("transistor.energy"));
 		text.add(gui.data.getEnergy() + " / " + gui.data.getMaxEnergy());
+
+		if (gui.data.getEnergy() < gui.data.getMaxEnergy())
+		{
+			text.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((gui.data.getRechargeAt() - gui.mc.world.getTotalWorldTime()) / 20L + 1L) + "s");
+		}
 	}
 
 	@Override

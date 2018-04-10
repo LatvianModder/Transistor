@@ -88,28 +88,25 @@ public class ButtonFunction extends ButtonFunctionBase
 	@Override
 	public boolean isSelected()
 	{
-		return gui.selectedFunction == this && !hasError();
+		return gui.selectedFunction == function && !hasError();
 	}
 
 	@Override
 	public boolean hasError()
 	{
-		return gui.selectedFunction == this && (gui.data.getUsedMemory() + function.memory) > gui.data.getMemory() || gui.data.isOverloaded(function);
+		return gui.selectedFunction == function && (gui.data.getUsedMemory() + function.memory) > gui.data.getMemory() || gui.data.isOverloaded(function);
 	}
 
 	@Override
-	public void click(boolean left)
+	public void click()
 	{
-		if (left)
+		if (gui.selectedFunction == function)
 		{
-			if (gui.selectedFunction == this)
-			{
-				gui.selectedFunction = null;
-			}
-			else if (!isBeingUsed() && !isLocked())
-			{
-				gui.selectedFunction = this;
-			}
+			gui.selectedFunction = TransistorFunctions.EMPTY;
+		}
+		else if (!isBeingUsed() && !isLocked())
+		{
+			gui.selectedFunction = function;
 		}
 	}
 }
