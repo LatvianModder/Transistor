@@ -8,7 +8,7 @@ buildscript {
 	}
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
 
 def ENV = System.getenv()
 if (ENV.BUILD_NUMBER)
@@ -55,18 +55,15 @@ processResources {
 }
 
 artifacts {
-	archives jar
 	archives sourceJar
 }
 
-publishing {
-	publications {
-		Transistor(MavenPublication) {
-			groupId = project.group
-			artifactId = project.archivesBaseName
-			version = project.version
-			artifact jar
-			artifact sourceJar
+if (System.getenv().LOCAL_MAVEN) {
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				repository(url: "file://" + System.getenv().LOCAL_MAVEN)
+			}
 		}
 	}
 }
