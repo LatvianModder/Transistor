@@ -58,11 +58,11 @@ artifacts {
 	archives sourceJar
 }
 
-if (System.getenv().LOCAL_MAVEN) {
+if (ENV.LOCAL_MAVEN) {
 	uploadArchives {
 		repositories {
 			mavenDeployer {
-				repository(url: "file://" + System.getenv().LOCAL_MAVEN)
+				repository(url: "file://${ENV.LOCAL_MAVEN}")
 			}
 		}
 	}
