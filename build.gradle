@@ -65,7 +65,7 @@ if (ENV.CURSEFORGE_KEY) {
 		apiKey = ENV.CURSEFORGE_KEY
 		project {
 			id = "${curseforge_id}"
-			releaseType = "alpha"
+			releaseType = "release"
 			addGameVersion "${mc_version}"
 		}
 	}
