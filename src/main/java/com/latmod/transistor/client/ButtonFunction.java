@@ -35,7 +35,7 @@ public class ButtonFunction extends ButtonFunctionBase
 	@Override
 	public void addHoverText(List<String> text)
 	{
-		text.add(getFunction().getDisplayName());
+		text.add(getFunction().getDisplayName() + TextFormatting.DARK_GRAY + " [" + function.memory + "]");
 
 		if (isLocked())
 		{
@@ -64,13 +64,7 @@ public class ButtonFunction extends ButtonFunctionBase
 
 				text.add(I18n.format("transistor.in_use", s));
 			}
-			else
-			{
-				text.add(TextFormatting.GRAY + I18n.format("transistor.install_function"));
-			}
 		}
-
-		text.add(TextFormatting.GRAY + I18n.format("transistor.memory") + ": " + TextFormatting.GOLD + function.memory);
 	}
 
 	@Override
