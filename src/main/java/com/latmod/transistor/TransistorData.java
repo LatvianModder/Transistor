@@ -26,6 +26,7 @@ public class TransistorData implements ICapabilityProvider
 	@CapabilityInject(TransistorData.class)
 	public static Capability<TransistorData> CAP;
 
+	@SuppressWarnings("ConstantConditions")
 	public static TransistorData get(ItemStack stack)
 	{
 		return stack.getCapability(CAP, null);
@@ -119,6 +120,7 @@ public class TransistorData implements ICapabilityProvider
 
 	@Nullable
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
 	{
 		return capability == CAP ? (T) this : null;
@@ -490,6 +492,7 @@ public class TransistorData implements ICapabilityProvider
 	}
 
 	@Nullable
+	@SuppressWarnings("unchecked")
 	public <E> E getCustomTempData(String key)
 	{
 		return (E) customTempData.get(key);
