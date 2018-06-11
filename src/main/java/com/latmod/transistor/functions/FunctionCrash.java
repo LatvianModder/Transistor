@@ -3,6 +3,7 @@ package com.latmod.transistor.functions;
 import com.google.common.collect.Multimap;
 import com.latmod.transistor.TransistorData;
 import com.latmod.transistor.TransistorFunction;
+import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -126,16 +127,22 @@ public class FunctionCrash extends TransistorFunction
 		map.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", speed, 0));
 	}
 
+	private boolean cheapMaterial(IBlockState state)
+	{
+		Material m = state.getMaterial();
+		return m == Material.PLANTS || m == Material.VINE || m == Material.LEAVES;
+	}
+
 	@Override
 	public boolean canHarvestBlock(TransistorData data, IBlockState state)
 	{
-		return data.canUseEnergy(100);
+		return data.canUseEnergy(cheapMaterial(state) ? 10 : 100);
 	}
 
 	@Override
 	public float getBlockDestroySpeed(TransistorData data, IBlockState state)
 	{
-		if (!data.canUseEnergy(100))
+		if (!data.canUseEnergy(cheapMaterial(state) ? 10 : 100))
 		{
 			return 0F;
 		}
@@ -158,7 +165,16 @@ public class FunctionCrash extends TransistorFunction
 	@Override
 	public void onBlockDestroyed(TransistorData data, IBlockState state, BlockPos pos, EntityPlayer player)
 	{
-		data.useEnergy(player.world, 100);
-		data.addXP(player.world, 1);
+		boolean cheapMaterial = cheapMaterial(state);
+
+		if (cheapMaterial)
+		{
+			data.useEnergy(player.world, 10);
+		}
+		else
+		{
+			data.addXP(player.world, 1);
+			data.useEnergy(player.world, 100);
+		}
 	}
 }
