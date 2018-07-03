@@ -10,18 +10,19 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author LatvianModder
  */
-public class TransistorData implements ICapabilityProvider
+public class TransistorData implements ICapabilitySerializable<NBTTagCompound>
 {
 	@CapabilityInject(TransistorData.class)
 	public static Capability<TransistorData> CAP;
@@ -49,52 +50,57 @@ public class TransistorData implements ICapabilityProvider
 		}
 	}
 
-	public final ItemStack stack;
-	private boolean loaded = false;
-	private long created;
-	private int energy;
-	private long rechargeAt;
-	private byte memory;
-	private byte selected;
-	private int xp;
-	private int points;
-	private int unlocked;
-	private byte cachedMemoryUsage;
-	private final TransistorFunction[] functions = new TransistorFunction[16];
-	private final Map<String, Object> customTempData = new HashMap<>();
+	public long created = -1L;
+	public int energy = 16000;
+	public long rechargeAt;
+	public int memory = 16;
+	public int selected = 0;
+	public int xp = 0;
+	public int points = 0;
+	public int unlocked = 0;
+	public byte cachedMemoryUsage = -1;
+	public final TransistorFunction[] functions = new TransistorFunction[16];
+	public final Map<String, Object> customTempData = new HashMap<>();
 
-	public TransistorData(ItemStack is)
+	public TransistorData()
 	{
-		stack = is;
+		Arrays.fill(functions, TransistorFunctions.EMPTY);
+		unlockFunction(TransistorFunctions.CRASH);
+		setAttack(0, TransistorFunctions.CRASH);
 	}
 
-	private NBTTagCompound getNBT()
+	@Override
+	public NBTTagCompound serializeNBT()
 	{
-		NBTTagCompound nbt = stack.getTagCompound();
+		NBTTagCompound nbt = new NBTTagCompound();
+		nbt.setLong("Created", created);
+		nbt.setInteger("Energy", energy);
+		nbt.setLong("RechargeAt", rechargeAt);
+		nbt.setByte("Memory", (byte) memory);
+		nbt.setByte("Selected", (byte) selected);
+		nbt.setInteger("XP", xp);
+		nbt.setInteger("Points", points);
+		nbt.setInteger("Unlocked", unlocked);
 
-		if (nbt == null)
+		for (int i = 0; i < functions.length; i++)
 		{
-			nbt = new NBTTagCompound();
-			stack.setTagCompound(nbt);
+			if (!functions[i].isEmpty())
+			{
+				nbt.setByte(KEYS[i], functions[i].index);
+			}
 		}
 
 		return nbt;
 	}
 
-	private void load()
+	@Override
+	public void deserializeNBT(NBTTagCompound nbt)
 	{
-		if (loaded)
-		{
-			return;
-		}
-
-		loaded = true;
-		NBTTagCompound nbt = getNBT();
 		created = nbt.hasKey("Created") ? nbt.getLong("Created") : -1;
 		energy = nbt.getInteger("Energy");
 		rechargeAt = nbt.getLong("RechargeAt");
-		memory = nbt.getByte("Memory");
-		selected = nbt.getByte("Selected");
+		memory = nbt.getByte("Memory") & 255;
+		selected = nbt.getByte("Selected") & 3;
 		xp = nbt.getInteger("XP");
 		points = nbt.getInteger("Points");
 		unlocked = nbt.getInteger("Unlocked");
@@ -109,6 +115,22 @@ public class TransistorData implements ICapabilityProvider
 			{
 				unlocked |= 1 << function.index;
 			}
+		}
+
+		TransistorFunction function;
+
+		for (int i = 0; i < functions.length; i++)
+		{
+			if (nbt.hasKey(KEYS[i], Constants.NBT.TAG_ANY_NUMERIC))
+			{
+				function = TransistorFunctions.get(nbt.getByte(KEYS[i]));
+			}
+			else
+			{
+				function = TransistorFunctions.get(nbt.getString(KEYS[i]));
+			}
+
+			functions[i] = isFunctionUnlocked(function) ? function : TransistorFunctions.EMPTY;
 		}
 	}
 
@@ -126,87 +148,26 @@ public class TransistorData implements ICapabilityProvider
 		return capability == CAP ? (T) this : null;
 	}
 
-	public long getTimeCreated()
-	{
-		load();
-		return created;
-	}
-
-	public void setTimeCreated(long value)
-	{
-		if (getTimeCreated() != value)
-		{
-			created = value;
-			getNBT().setLong("Created", created);
-		}
-	}
-
 	public long getTick(World world)
 	{
-		long l = world.getTotalWorldTime() - getTimeCreated();
+		long l = world.getTotalWorldTime() - created;
 
 		if (l < 0L)
 		{
 			l = 0L;
-			setTimeCreated(world.getTotalWorldTime());
+			created = world.getTotalWorldTime();
 		}
 
 		return l;
 	}
 
-	public int getEnergy()
-	{
-		load();
-		return energy;
-	}
-
-	public void setEnergy(int value)
-	{
-		if (getEnergy() != value)
-		{
-			energy = value;
-			getNBT().setInteger("Energy", energy);
-		}
-	}
-
-	public long getRechargeAt()
-	{
-		load();
-		return rechargeAt;
-	}
-
-	public void setRechargeAt(long value)
-	{
-		if (getRechargeAt() != value)
-		{
-			rechargeAt = value;
-			getNBT().setLong("RechargeAt", rechargeAt);
-		}
-	}
-
 	public int getMaxEnergy()
 	{
-		return getMemory() * 1000;
+		return memory * 1000;
 	}
 
-	public int getMemory()
+	public int getSelected()
 	{
-		load();
-		return memory;
-	}
-
-	public void setMemory(byte value)
-	{
-		if (getMemory() != value)
-		{
-			memory = value;
-			getNBT().setInteger("Memory", memory);
-		}
-	}
-
-	public byte getSelected()
-	{
-		load();
 		return selected;
 	}
 
@@ -217,7 +178,6 @@ public class TransistorData implements ICapabilityProvider
 		if (getSelected() != v)
 		{
 			selected = v;
-			getNBT().setByte("Selected", selected);
 			customTempData.clear();
 			return true;
 		}
@@ -225,24 +185,9 @@ public class TransistorData implements ICapabilityProvider
 		return false;
 	}
 
-	public int getXP()
+	public void addXP(World world, int i)
 	{
-		load();
-		return xp;
-	}
-
-	public void setXP(int value)
-	{
-		if (getXP() != value)
-		{
-			xp = value;
-			getNBT().setInteger("XP", xp);
-		}
-	}
-
-	public void addXP(World world, int xp)
-	{
-		setXP(getXP() + xp);
+		xp += i;
 	}
 
 	public int getNextLevelXP()
@@ -250,44 +195,14 @@ public class TransistorData implements ICapabilityProvider
 		return 100;
 	}
 
-	public int getPoints()
-	{
-		load();
-		return points;
-	}
-
-	public void setPoints(int value)
-	{
-		if (getPoints() != value)
-		{
-			points = value;
-			getNBT().setInteger("Points", points);
-		}
-	}
-
-	public int getUnlocked()
-	{
-		load();
-		return unlocked;
-	}
-
-	public void setUnlocked(int value)
-	{
-		if (getUnlocked() != value)
-		{
-			unlocked = value;
-			getNBT().setInteger("Unlocked", unlocked);
-		}
-	}
-
 	public boolean isFunctionUnlocked(TransistorFunction function)
 	{
-		return !function.isEmpty() && (getUnlocked() & (1 << function.index)) != 0;
+		return !function.isEmpty() && (unlocked & (1 << function.index)) != 0;
 	}
 
 	public boolean isSlotUnlocked(int index)
 	{
-		return index < 4 || (getUnlocked() & (1 << (index + 12))) != 0;
+		return index < 4 || (unlocked & (1 << (index + 12))) != 0;
 	}
 
 	public int isFunctionInUse(TransistorFunction function)
@@ -312,17 +227,17 @@ public class TransistorData implements ICapabilityProvider
 	{
 		if (!function.isEmpty())
 		{
-			setUnlocked(getUnlocked() | (1 << function.index));
+			unlocked |= (1 << function.index);
 		}
 	}
 
-	public boolean unlockSlot(int index, boolean points)
+	public boolean unlockSlot(int index, boolean checkPoints)
 	{
 		if (index < 4 || isSlotUnlocked(index))
 		{
 			return false;
 		}
-		else if (points)
+		else if (checkPoints)
 		{
 			int p = 1;
 
@@ -331,9 +246,9 @@ public class TransistorData implements ICapabilityProvider
 				p = 2;
 			}
 
-			if (getPoints() >= p)
+			if (points >= p)
 			{
-				setPoints(getPoints() - p);
+				points -= p;
 			}
 			else
 			{
@@ -341,7 +256,7 @@ public class TransistorData implements ICapabilityProvider
 			}
 		}
 
-		setUnlocked(getUnlocked() | (1 << (index + 12)));
+		unlocked |= (1 << index + 12);
 		return true;
 	}
 
@@ -352,51 +267,18 @@ public class TransistorData implements ICapabilityProvider
 
 	public TransistorFunction getFunction(int index)
 	{
-		if (index < 0 || index >= 16)
-		{
-			return TransistorFunctions.EMPTY;
-		}
-
-		if (functions[index] == null)
-		{
-			TransistorFunction function;
-
-			if (getNBT().hasKey(KEYS[index], Constants.NBT.TAG_ANY_NUMERIC))
-			{
-				function = TransistorFunctions.get(getNBT().getByte(KEYS[index]));
-			}
-			else
-			{
-				function = TransistorFunctions.get(getNBT().getString(KEYS[index]));
-			}
-
-			functions[index] = isFunctionUnlocked(function) ? function : TransistorFunctions.EMPTY;
-		}
-
-		return functions[index];
+		return index < 0 || index >= 16 ? TransistorFunctions.EMPTY : functions[index];
 	}
 
 	public void setFunction(int index, TransistorFunction function)
 	{
-		if (index < 0 || index >= 16)
+		if (index < 0 || index >= 16 || getFunction(index).equals(function))
 		{
 			return;
 		}
 
-		if (!getFunction(index).equals(function))
-		{
-			functions[index] = function;
-			cachedMemoryUsage = -1;
-
-			if (!function.isEmpty())
-			{
-				getNBT().setByte(KEYS[index], function.index);
-			}
-			else
-			{
-				getNBT().removeTag(KEYS[index]);
-			}
-		}
+		functions[index] = function;
+		cachedMemoryUsage = -1;
 	}
 
 	public TransistorFunction getAttack(int index)
@@ -500,9 +382,11 @@ public class TransistorData implements ICapabilityProvider
 
 	public void update(EntityPlayer player, boolean isSelected)
 	{
-		if (getTimeCreated() == -1L)
+		long now = player.world.getTotalWorldTime();
+
+		if (created == -1L)
 		{
-			setTimeCreated(player.world.getTotalWorldTime());
+			created = now;
 		}
 
 		getSelectedAttack().onUpdate(this, player, isSelected);
@@ -512,10 +396,10 @@ public class TransistorData implements ICapabilityProvider
 			getPassive(i).onPassiveUpdate(this, player, isSelected);
 		}
 
-		if (getEnergy() < getMaxEnergy() && player.world.getTotalWorldTime() >= getRechargeAt())
+		if (energy < getMaxEnergy() && now >= rechargeAt)
 		{
-			setEnergy(Math.min(getMaxEnergy(), getEnergy() + 1000));
-			setRechargeAt(player.world.getTotalWorldTime() + 200L);
+			energy = Math.min(getMaxEnergy(), energy + 1000);
+			rechargeAt = now + 200L;
 		}
 	}
 
@@ -550,7 +434,7 @@ public class TransistorData implements ICapabilityProvider
 
 		TransistorFunction function = TransistorFunctions.get(f);
 
-		if (!function.isEmpty() && isFunctionUnlocked(function) && getUsedMemory() + function.memory <= getMemory())
+		if (!function.isEmpty() && isFunctionUnlocked(function) && getUsedMemory() + function.memory <= memory)
 		{
 			if (index >= 4 && index < 12 && getAttack((index - 4) / 2).isEmpty())
 			{
@@ -583,10 +467,10 @@ public class TransistorData implements ICapabilityProvider
 
 	public boolean installMemory()
 	{
-		if (getPoints() >= 1 && getMemory() < 32)
+		if (points >= 1 && memory < 32)
 		{
-			setMemory((byte) (getMemory() + 1));
-			setPoints(getPoints() - 1);
+			memory++;
+			points--;
 			return true;
 		}
 
@@ -595,15 +479,15 @@ public class TransistorData implements ICapabilityProvider
 
 	public boolean canUseEnergy(int energy)
 	{
-		return getEnergy() > 0;
+		return energy > 0;
 	}
 
-	public boolean useEnergy(World world, int energy)
+	public boolean useEnergy(World world, int e)
 	{
-		if (canUseEnergy(energy))
+		if (canUseEnergy(e))
 		{
-			setEnergy(Math.max(0, getEnergy() - energy));
-			setRechargeAt(Math.max(getRechargeAt(), world.getTotalWorldTime() + (getEnergy() <= 0 ? 600L : 200L)));
+			energy = Math.max(0, energy - e);
+			rechargeAt = Math.max(rechargeAt, world.getTotalWorldTime() + (energy <= 0 ? 600L : 200L));
 			return true;
 		}
 

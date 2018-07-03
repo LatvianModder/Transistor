@@ -19,18 +19,18 @@ public class BarEnergy extends Bar
 	public void addHoverText(List<String> text)
 	{
 		text.add(TextFormatting.GREEN + I18n.format("transistor.energy"));
-		text.add(gui.data.getEnergy() + " / " + gui.data.getMaxEnergy());
+		text.add(gui.data.energy + " / " + gui.data.getMaxEnergy());
 
-		if (gui.data.getEnergy() < gui.data.getMaxEnergy())
+		if (gui.data.energy < gui.data.getMaxEnergy())
 		{
-			text.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((gui.data.getRechargeAt() - gui.mc.world.getTotalWorldTime()) / 20L + 1L) + "s");
+			text.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((gui.data.rechargeAt - gui.mc.world.getTotalWorldTime()) / 20L + 1L) + "s");
 		}
 	}
 
 	@Override
 	public int getValue()
 	{
-		return gui.data.getEnergy();
+		return gui.data.energy;
 	}
 
 	@Override

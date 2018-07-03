@@ -1,15 +1,7 @@
 {
-	"type": "forge:ore_shaped",
+	"type": "minecraft:crafting_shaped",
 	"group": "transistor",
-	"result": {
-		"item": "transistor",
-		"nbt": {
-			"Memory": 16,
-			"Energy": 16000,
-			"Available": ["crash"],
-			"Attack_1": "crash"
-		}
-	},
+	"result": {"item": "transistor"},
 	"pattern": [
 		" GN",
 		"ERG",

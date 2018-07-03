@@ -21,7 +21,7 @@ public class BarMemory extends Bar
 	@Override
 	public void click()
 	{
-		if (gui.data.getPoints() > 0 && gui.data.getMemory() < 32)
+		if (gui.data.points > 0 && gui.data.memory < 32)
 		{
 			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
 				gui.mc.displayGuiScreen(gui);
@@ -41,9 +41,9 @@ public class BarMemory extends Bar
 	public void addHoverText(List<String> text)
 	{
 		text.add(TextFormatting.DARK_AQUA + I18n.format("transistor.memory"));
-		text.add(gui.data.getUsedMemory() + " / " + gui.data.getMemory());
+		text.add(gui.data.getUsedMemory() + " / " + gui.data.memory);
 
-		if (gui.data.getPoints() > 0 && gui.data.getMemory() < 32)
+		if (gui.data.points > 0 && gui.data.memory < 32)
 		{
 			text.add(TextFormatting.GRAY + I18n.format("transistor.install_memory"));
 		}
@@ -58,7 +58,7 @@ public class BarMemory extends Bar
 	@Override
 	public int getMaxValue()
 	{
-		return gui.data.getMemory();
+		return gui.data.memory;
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class BarMemory extends Bar
 	@Override
 	public int getBarColor(int index, int bars, int actualBars)
 	{
-		if (!gui.selectedFunction.isEmpty() && gui.data.getUsedMemory() + gui.selectedFunction.memory > gui.data.getMemory())
+		if (!gui.selectedFunction.isEmpty() && gui.data.getUsedMemory() + gui.selectedFunction.memory > gui.data.memory)
 		{
 			return RED;
 		}

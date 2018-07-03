@@ -31,7 +31,7 @@ public class ButtonPassive extends ButtonFunctionBase
 	@Override
 	public void click()
 	{
-		if (isLocked() && gui.data.getPoints() >= 2)
+		if (isLocked() && gui.data.points >= 2)
 		{
 			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
 				gui.mc.displayGuiScreen(gui);
@@ -63,7 +63,7 @@ public class ButtonPassive extends ButtonFunctionBase
 		{
 			text.add(TextFormatting.GOLD + I18n.format("transistor.locked"));
 
-			if (gui.data.getPoints() >= 2)
+			if (gui.data.points >= 2)
 			{
 				text.add(TextFormatting.GRAY + I18n.format("transistor.unlock_passive_slot"));
 			}

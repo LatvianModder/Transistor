@@ -88,7 +88,7 @@ public class ButtonFunction extends ButtonFunctionBase
 	@Override
 	public boolean hasError()
 	{
-		return gui.selectedFunction == function && (gui.data.getUsedMemory() + function.memory) > gui.data.getMemory() || gui.data.isOverloaded(function);
+		return gui.selectedFunction == function && (gui.data.getUsedMemory() + function.memory) > gui.data.memory || gui.data.isOverloaded(function);
 	}
 
 	@Override

@@ -19,15 +19,14 @@ public class BarXP extends Bar
 	public void addHoverText(List<String> text)
 	{
 		text.add(TextFormatting.GREEN + I18n.format("transistor.xp"));
-		text.add(gui.data.getXP() + " / " + gui.data.getNextLevelXP());
-		int points = gui.data.getPoints();
-		text.add(I18n.format("transistor.available_points") + ": " + (points > 0 ? TextFormatting.GREEN : TextFormatting.RED) + points);
+		text.add(gui.data.xp + " / " + gui.data.getNextLevelXP());
+		text.add(I18n.format("transistor.available_points") + ": " + (gui.data.points > 0 ? TextFormatting.GREEN : TextFormatting.RED) + gui.data.points);
 	}
 
 	@Override
 	public int getValue()
 	{
-		return gui.data.getXP();
+		return gui.data.xp;
 	}
 
 	@Override

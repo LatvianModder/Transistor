@@ -54,14 +54,13 @@ public class ItemTransistor extends Item
 			public float apply(ItemStack stack, @Nullable World world, @Nullable EntityLivingBase entity)
 			{
 				TransistorData data = TransistorData.get(stack);
-				int energy = data.getEnergy();
 
-				if (energy <= 0)
+				if (data.energy <= 0)
 				{
 					return 1F;
 				}
 
-				double e = energy / (double) data.getMaxEnergy();
+				double e = data.energy / (double) data.getMaxEnergy();
 
 				if (e < 0.1D)
 				{
@@ -76,7 +75,22 @@ public class ItemTransistor extends Item
 	@Override
 	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable NBTTagCompound nbt)
 	{
-		return new TransistorData(stack);
+		return new TransistorData();
+	}
+
+	@Override
+	public NBTTagCompound getNBTShareTag(ItemStack stack)
+	{
+		return TransistorData.get(stack).serializeNBT();
+	}
+
+	@Override
+	public void readNBTShareTag(ItemStack stack, @Nullable NBTTagCompound nbt)
+	{
+		if (nbt != null)
+		{
+			TransistorData.get(stack).deserializeNBT(nbt);
+		}
 	}
 
 	// Core functions //
@@ -188,24 +202,20 @@ public class ItemTransistor extends Item
 	{
 		if (isInCreativeTab(tab))
 		{
-			TransistorData data = TransistorData.get(new ItemStack(this));
-			data.setMemory((byte) 16);
-			data.unlockFunction(TransistorFunctions.CRASH);
-			data.setAttack(0, TransistorFunctions.CRASH);
-			data.setEnergy(data.getMaxEnergy());
-			items.add(data.stack);
+			items.add(new ItemStack(this));
 
-			data = TransistorData.get(new ItemStack(this));
-			data.setMemory((byte) 32);
-			data.setUnlocked(0xFFFFFFFF);
+			ItemStack stack = new ItemStack(this);
+			TransistorData data = TransistorData.get(stack);
+			data.memory = 32;
+			data.unlocked = 0xFFFFFFFF;
 			data.setAttack(0, TransistorFunctions.CRASH);
 			data.setAttack(1, TransistorFunctions.BREACH);
 			data.setAttack(2, TransistorFunctions.PING);
 			data.setAttack(3, TransistorFunctions.JAUNT);
 			data.setPassive(0, TransistorFunctions.HELP);
 			data.setPassive(1, TransistorFunctions.CULL);
-			data.setEnergy(data.getMaxEnergy());
-			items.add(data.stack);
+			data.energy = data.getMaxEnergy();
+			items.add(stack);
 		}
 	}
 
@@ -242,13 +252,13 @@ public class ItemTransistor extends Item
 			tooltip.add("");
 		}
 
-		tooltip.add(I18n.format("transistor.energy") + ": " + TextFormatting.AQUA + data.getEnergy() + TextFormatting.GRAY + " / " + TextFormatting.AQUA + data.getMaxEnergy());
-		tooltip.add(I18n.format("transistor.memory") + ": " + TextFormatting.GOLD + data.getUsedMemory() + TextFormatting.GRAY + " / " + TextFormatting.GOLD + data.getMemory());
-		tooltip.add(I18n.format("transistor.xp") + ": " + TextFormatting.GREEN + data.getXP());
+		tooltip.add(I18n.format("transistor.energy") + ": " + TextFormatting.AQUA + data.energy + TextFormatting.GRAY + " / " + TextFormatting.AQUA + data.getMaxEnergy());
+		tooltip.add(I18n.format("transistor.memory") + ": " + TextFormatting.GOLD + data.getUsedMemory() + TextFormatting.GRAY + " / " + TextFormatting.GOLD + data.memory);
+		tooltip.add(I18n.format("transistor.xp") + ": " + TextFormatting.GREEN + data.xp);
 
-		if (data.getEnergy() < data.getMaxEnergy() && world != null)
+		if (data.energy < data.getMaxEnergy() && world != null)
 		{
-			tooltip.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((data.getRechargeAt() - world.getTotalWorldTime()) / 20L + 1L) + "s");
+			tooltip.add(I18n.format("transistor.cooldown") + ": " + TextFormatting.BLUE + ((data.rechargeAt - world.getTotalWorldTime()) / 20L + 1L) + "s");
 		}
 
 		if (GuiScreen.isCtrlKeyDown())
@@ -284,13 +294,13 @@ public class ItemTransistor extends Item
 	public boolean showDurabilityBar(ItemStack stack)
 	{
 		TransistorData data = TransistorData.get(stack);
-		return data.getEnergy() > 0 && data.getEnergy() < data.getMaxEnergy();
+		return data.energy > 0 && data.energy < data.getMaxEnergy();
 	}
 
 	@Override
 	public double getDurabilityForDisplay(ItemStack stack)
 	{
 		TransistorData data = TransistorData.get(stack);
-		return 1D - MathHelper.clamp(data.getEnergy() / (double) data.getMaxEnergy(), 0D, 1D);
+		return 1D - MathHelper.clamp(data.energy / (double) data.getMaxEnergy(), 0D, 1D);
 	}
 }

@@ -33,7 +33,7 @@ public class ButtonUpgrade extends ButtonFunctionBase
 	@Override
 	public void click()
 	{
-		if (isLocked() && gui.data.getPoints() >= 1)
+		if (isLocked() && gui.data.points >= 1)
 		{
 			gui.mc.displayGuiScreen(new GuiYesNo((result, id) -> {
 				gui.mc.displayGuiScreen(gui);
@@ -65,7 +65,7 @@ public class ButtonUpgrade extends ButtonFunctionBase
 		{
 			text.add(TextFormatting.GOLD + I18n.format("transistor.locked"));
 
-			if (gui.data.getPoints() >= 1)
+			if (gui.data.points >= 1)
 			{
 				text.add(TextFormatting.GRAY + I18n.format("transistor.unlock_upgrade_slot"));
 			}
