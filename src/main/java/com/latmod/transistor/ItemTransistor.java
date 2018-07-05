@@ -1,6 +1,7 @@
 package com.latmod.transistor;
 
 import com.google.common.collect.Multimap;
+import com.latmod.transistor.client.GuiSelectFunction;
 import com.latmod.transistor.functions.TransistorFunctions;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -98,12 +99,19 @@ public class ItemTransistor extends Item
 	@Override
 	public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand)
 	{
+		ItemStack stack = player.getHeldItem(hand);
+
 		if (world.isRemote)
 		{
-			Transistor.PROXY.openGui(TransistorData.get(player.getHeldItem(hand)), hand);
+			openGui(TransistorData.get(stack), hand);
 		}
 
-		return new ActionResult<>(EnumActionResult.SUCCESS, player.getHeldItem(hand));
+		return new ActionResult<>(EnumActionResult.SUCCESS, stack);
+	}
+
+	private void openGui(TransistorData data, EnumHand hand)
+	{
+		GuiSelectFunction.open(data, hand);
 	}
 
 	@Override

@@ -25,6 +25,11 @@ import java.util.List;
  */
 public class GuiSelectFunction extends GuiScreen
 {
+	public static void open(TransistorData data, EnumHand hand)
+	{
+		Minecraft.getMinecraft().displayGuiScreen(new GuiSelectFunction(data, hand));
+	}
+
 	public static class Button
 	{
 		public int x, y, w = 32, h = 32;
