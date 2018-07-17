@@ -43,7 +43,7 @@ public class ItemTransistor extends Item
 	public ItemTransistor(String id)
 	{
 		setRegistryName(Transistor.MOD_ID, id);
-		setUnlocalizedName(Transistor.MOD_ID + "." + id);
+		setTranslationKey(Transistor.MOD_ID + "." + id);
 		setCreativeTab(CreativeTabs.COMBAT);
 		setMaxStackSize(1);
 		setFull3D();

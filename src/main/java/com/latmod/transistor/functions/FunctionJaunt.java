@@ -57,7 +57,7 @@ public class FunctionJaunt extends TransistorFunction
 		double mpitchr = Math.toRadians(-player.rotationPitch);
 		double f4 = -Math.cos(mpitchr);
 		double dist = 20D;
-		Vec3d vec3d1 = vec3d.addVector(Math.sin(myawr - Math.PI) * f4 * dist, Math.sin(mpitchr) * dist, Math.cos(myawr - Math.PI) * f4 * dist);
+		Vec3d vec3d1 = vec3d.add(Math.sin(myawr - Math.PI) * f4 * dist, Math.sin(mpitchr) * dist, Math.cos(myawr - Math.PI) * f4 * dist);
 		RayTraceResult result = player.world.rayTraceBlocks(vec3d, vec3d1, false, true, false);
 
 		if (result != null && result.typeOfHit == RayTraceResult.Type.BLOCK)
