@@ -1,5 +1,4 @@
-itemGroup.transistor=Transistor
-item.transistor.transistor.name=Transistor
+item.transistor.name=Transistor
 transistor.function=Function
 transistor.function.empty=Empty
 transistor.configure=Configure

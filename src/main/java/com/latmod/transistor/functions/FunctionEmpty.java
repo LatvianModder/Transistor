@@ -5,8 +5,6 @@ import com.latmod.transistor.TransistorFunction;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * @author LatvianModder
@@ -25,7 +23,6 @@ public class FunctionEmpty extends TransistorFunction
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
 	public String getDisplayName()
 	{
 		return I18n.format("transistor.function.empty");

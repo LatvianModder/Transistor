@@ -40,10 +40,8 @@ import java.util.List;
  */
 public class ItemTransistor extends Item
 {
-	public ItemTransistor(String id)
+	public ItemTransistor()
 	{
-		setRegistryName(Transistor.MOD_ID, id);
-		setTranslationKey(Transistor.MOD_ID + "." + id);
 		setCreativeTab(CreativeTabs.COMBAT);
 		setMaxStackSize(1);
 		setFull3D();
@@ -285,7 +283,6 @@ public class ItemTransistor extends Item
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
 	public String getHighlightTip(ItemStack stack, String displayName)
 	{
 		TransistorFunction function = TransistorData.get(stack).getSelectedAttack();

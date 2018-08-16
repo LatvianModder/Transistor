@@ -9,8 +9,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 /**
  * @author LatvianModder
@@ -54,7 +52,6 @@ public class TransistorFunction
 		return name;
 	}
 
-	@SideOnly(Side.CLIENT)
 	public String getDisplayName()
 	{
 		return color + displayName;
@@ -88,7 +85,6 @@ public class TransistorFunction
 	{
 	}
 
-	@SideOnly(Side.CLIENT)
 	public void onWorldRender(TransistorData data, float partialTicks)
 	{
 	}
