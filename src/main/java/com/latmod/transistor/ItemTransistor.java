@@ -44,7 +44,6 @@ public class ItemTransistor extends Item
 	{
 		setCreativeTab(CreativeTabs.COMBAT);
 		setMaxStackSize(1);
-		setFull3D();
 
 		addPropertyOverride(new ResourceLocation("mode"), new IItemPropertyGetter()
 		{
