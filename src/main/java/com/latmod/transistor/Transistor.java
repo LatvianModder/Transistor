@@ -17,8 +17,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 @Mod(
 		modid = Transistor.MOD_ID,
 		name = Transistor.MOD_NAME,
-		version = Transistor.VERSION,
-		acceptedMinecraftVersions = "[1.12,)"
+		version = Transistor.VERSION
 )
 public class Transistor
 {
